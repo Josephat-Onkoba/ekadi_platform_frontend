@@ -367,11 +367,7 @@ export default function ResetPasswordConfirmPage() {
                         h="auto"
                         _hover={{
                           textDecoration: 'underline',
-                        }}
-                        rightIcon={
-                          <Icon
-                            as={showRequirements ? FiChevronUp : FiChevronDown}
-                            w={4}
+                        }} w={4}
                             h={4}
                           />
                         }
@@ -404,9 +400,7 @@ export default function ResetPasswordConfirmPage() {
                       type="submit"
                       w="full"
                       size="lg"
-                      isLoading={isSubmitting}
-                      loadingText="Resetting Password..."
-                      {...THEME.BUTTON_STYLES.primaryButton}
+                      disabled={isSubmitting} {...THEME.BUTTON_STYLES.primaryButton}
                     >
                       Reset Password
                     </Button>

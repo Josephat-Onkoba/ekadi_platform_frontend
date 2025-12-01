@@ -160,9 +160,7 @@ const CTAButton = ({
         _active={{
           transform: 'translateY(0)',
         }}
-        transition="all 0.3s ease"
-        rightIcon={isPrimary ? <FiArrowRight /> : undefined}
-      >
+        transition="all 0.3s ease" >
         {children}
       </Button>
     </Link>
@@ -339,9 +337,7 @@ export default function HomePage() {
                   <Button
                     {...THEME.BUTTON_STYLES.primaryButton}
                     size="lg"
-                    px={8}
-                    rightIcon={<FiArrowRight />}
-                  >
+                    px={8} >
                     Get Started Free
                   </Button>
                 </Link>
@@ -701,9 +697,7 @@ export default function HomePage() {
                       transform: 'translateY(-2px)',
                       boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
                     }}
-                    borderRadius="lg"
-                    rightIcon={<FiArrowRight />}
-                  >
+                    borderRadius="lg" >
                     Create Free Account
                   </Button>
                 </Link>

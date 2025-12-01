@@ -63,9 +63,7 @@ const editProfileSchema = z
         .string()
         .min(1, 'Phone number is required')
         .min(10, 'Phone number must be at least 10 characters'),
-      user_type: z.enum(['individual', 'business'], {
-        required_error: 'Please select an account type',
-      }),
+      user_type: z.enum(['individual', 'business']),
       company_name: z.string().optional(),
       bio: z.string().max(500, 'Bio must be 500 characters or less').optional(),
     }),
@@ -138,22 +136,14 @@ export default function EditProfilePage() {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast({
-        title: 'Invalid file type',
-        description: 'Please select an image file (JPG, PNG, etc.)',
-        type: 'error',
-      });
+      toast.error('Invalid file type', 'Please select an image file (JPG, PNG, etc.)');
       return;
     }
 
     // Validate file size (5MB max)
     const maxSize = 5 * 1024 * 1024; // 5MB in bytes
     if (file.size > maxSize) {
-      toast({
-        title: 'File too large',
-        description: 'Please select an image smaller than 5MB',
-        type: 'error',
-      });
+      toast.error('File too large', 'Please select an image smaller than 5MB');
       return;
     }
 
@@ -218,19 +208,11 @@ export default function EditProfilePage() {
         });
       }
 
-      toast({
-        title: 'Profile updated',
-        description: 'Your profile has been successfully updated.',
-        type: 'success',
-      });
+      toast.success('Profile updated', 'Your profile has been successfully updated.');
 
       router.push(ROUTES.PROTECTED.PROFILE);
     } catch (error: any) {
-      toast({
-        title: 'Update failed',
-        description: error?.message || 'Failed to update profile. Please try again.',
-        type: 'error',
-      });
+      toast.error('Update failed', error?.message || 'Failed to update profile. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -550,8 +532,7 @@ export default function EditProfilePage() {
                   <Stack direction={{ base: 'column', md: 'row' }} gap={4}>
                     <Button
                       type="submit"
-                      isLoading={isSubmitting}
-                      loadingText="Saving..."
+                      disabled={isSubmitting}
                       flex="1"
                       {...THEME.BUTTON_STYLES.primaryButton}
                     >

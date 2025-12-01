@@ -681,9 +681,7 @@ export default function RegisterPage() {
                   {step > 1 && (
                     <Button
                       variant="ghost"
-                      onClick={handlePrevStep}
-                      leftIcon={<FiChevronLeft />}
-                      size="lg"
+                      onClick={handlePrevStep} size="lg"
                       w="50%"
                       color="gray.600"
                       _hover={{
@@ -700,9 +698,7 @@ export default function RegisterPage() {
                       onClick={handleNextStep}
                       {...THEME.BUTTON_STYLES.primaryButton}
                       size="lg"
-                      w={step === 1 ? "100%" : "50%"}
-                      rightIcon={<FiArrowRight />}
-                    >
+                      w={step === 1 ? "100%" : "50%"} >
                       Next Step
                     </Button>
                   ) : (
@@ -711,10 +707,7 @@ export default function RegisterPage() {
                       {...THEME.BUTTON_STYLES.primaryButton}
                       size="lg"
                       w="50%"
-                      isLoading={isSubmitting}
-                      loadingText="Creating..."
-                      leftIcon={<FiCheckCircle />}
-                    >
+                      disabled={isSubmitting} >
                       Complete
                     </Button>
                   )}

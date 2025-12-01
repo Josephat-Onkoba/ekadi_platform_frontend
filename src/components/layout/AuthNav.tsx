@@ -403,6 +403,9 @@ export default function AuthNav() {
                 aria-label="Open navigation menu"
                 color="gray.700"
                 _hover={{ bg: 'gray.50' }}
+                size="lg"
+                minW="44px"
+                minH="44px"
               >
                 <FiMenu size={24} />
               </IconButton>

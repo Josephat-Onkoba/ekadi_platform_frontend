@@ -109,8 +109,7 @@ export default function ForgotPasswordPage() {
           >
             {/* BACK LINK */}
             <Link href={ROUTES.PUBLIC.LOGIN} style={{ display: 'inline-block', marginBottom: '1rem' }}>
-              <Button
-                leftIcon={<Icon as={FiArrowLeft} />}
+              <Button />}
                 variant="ghost"
                 size="sm"
                 mb={4}
@@ -211,9 +210,7 @@ export default function ForgotPasswordPage() {
                       type="submit"
                       w="full"
                       size="lg"
-                      isLoading={isSubmitting}
-                      loadingText="Sending..."
-                      {...THEME.BUTTON_STYLES.primaryButton}
+                      disabled={isSubmitting} {...THEME.BUTTON_STYLES.primaryButton}
                     >
                       Send Reset Link
                     </Button>

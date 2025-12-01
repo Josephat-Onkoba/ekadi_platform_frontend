@@ -249,9 +249,7 @@ export default function LoginPage() {
                   type="submit"
                   size="lg"
                   w="full"
-                  isLoading={isSubmitting}
-                  loadingText="Logging in..."
-                  {...THEME.BUTTON_STYLES.primaryButton}
+                  disabled={isSubmitting} {...THEME.BUTTON_STYLES.primaryButton}
                 >
                   Login
                 </Button>

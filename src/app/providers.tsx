@@ -240,34 +240,6 @@ function handleError(error: Error, info: { componentStack: string }) {
  * @param props - Component props
  * @returns Nested providers wrapping children
  */
-/**
- * Force light mode on mount
- * Prevents dark mode from system preferences
- */
-function ForceLightMode() {
-  useEffect(() => {
-    // Force light mode
-    document.documentElement.setAttribute('data-theme', 'light');
-    document.documentElement.style.colorScheme = 'light';
-    
-    // Remove any dark mode classes
-    document.documentElement.classList.remove('dark');
-    document.body.classList.remove('dark');
-    
-    // Prevent system dark mode from applying
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    if (mediaQuery.matches) {
-      // Override any dark mode styles
-      document.documentElement.style.setProperty('--color-background', '#ffffff', 'important');
-      document.documentElement.style.setProperty('--color-surface', '#f9fafb', 'important');
-      document.documentElement.style.setProperty('--color-text', '#171717', 'important');
-      document.documentElement.style.setProperty('--color-text-secondary', '#737373', 'important');
-      document.documentElement.style.setProperty('--color-border', '#e5e7eb', 'important');
-    }
-  }, []);
-
-  return null;
-}
 
 export default function Providers({ children }: ProvidersProps) {
   return (
@@ -280,7 +252,6 @@ export default function Providers({ children }: ProvidersProps) {
       }}
     >
       <Suspense fallback={<LoadingFallback />}>
-        <ForceLightMode />
         <ChakraProvider value={system}>
           <AuthProvider>
             {children}

@@ -138,12 +138,9 @@ export default function EmailVerificationSentPage() {
                   Didn't receive the email?
                 </Text>
 
-                <Button
-                  leftIcon={<Icon as={FiRefreshCw} />}
+                <Button />}
                   onClick={handleResend}
-                  isLoading={isResending}
-                  loadingText="Sending..."
-                  {...THEME.BUTTON_STYLES.secondaryButton}
+                  disabled={isResending} {...THEME.BUTTON_STYLES.secondaryButton}
                   variant="outline"
                   w="full"
                   size="lg"

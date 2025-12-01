@@ -40,7 +40,7 @@ export default function ToastContainer() {
   return (
     <Box
       position="fixed"
-      top={4}
+      top={20}
       right={4}
       zIndex={9999}
       pointerEvents="none"

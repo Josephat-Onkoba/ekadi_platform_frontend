@@ -42,16 +42,6 @@
   }
 }
 
-/* Dark mode variables (DISABLED - Force light mode until theme toggle is implemented) */
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: #0a0a0a;
-    --color-surface: #171717;
-    --color-text: #fafafa;
-    --color-text-secondary: #a3a3a3;
-    --color-border: #262626;
-  }
-} */
 
 /* ===================================
    Base Styles
@@ -83,28 +73,9 @@ body {
   font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
-/* Force light mode - prevent dark mode from system preferences */
+/* Color scheme - respects system preferences */
 html {
-  color-scheme: light !important;
-}
-
-html[data-theme],
-html[data-color-mode],
-html[data-theme="light"] {
-  color-scheme: light !important;
-}
-
-/* Override any dark mode styles that might be applied */
-html.dark,
-body.dark,
-[data-theme="dark"] {
-  --color-background: #ffffff !important;
-  --color-surface: #f9fafb !important;
-  --color-text: #171717 !important;
-  --color-text-secondary: #737373 !important;
-  --color-border: #e5e7eb !important;
-  background: #ffffff !important;
-  color: #171717 !important;
+  color-scheme: light dark;
 }
 
 /* ===================================
@@ -348,36 +319,3 @@ button:active:not(:disabled) {
   }
 }
 
-/* Registration Form Input Overrides - Force Light Theme */
-.registration-input,
-.registration-input:hover,
-.registration-input:focus {
-  background-color: #F9F9F9 !important;
-  background: #F9F9F9 !important;
-}
-
-.registration-input::placeholder {
-  color: #718096 !important;
-  opacity: 1 !important;
-  text-indent: 0 !important;
-  padding-left: 0 !important;
-  margin-left: 0 !important;
-}
-
-@media (prefers-color-scheme: dark) {
-  .registration-input,
-  .registration-input:hover,
-  .registration-input:focus {
-    background-color: #F9F9F9 !important;
-    background: #F9F9F9 !important;
-    color: #2D3748 !important;
-  }
-  
-  .registration-input::placeholder {
-    color: #718096 !important;
-    opacity: 1 !important;
-    text-indent: 0 !important;
-    padding-left: 0 !important;
-    margin-left: 0 !important;
-  }
-}
