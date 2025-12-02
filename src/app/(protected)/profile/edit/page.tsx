@@ -62,7 +62,9 @@ const editProfileSchema = z
       phone_number: z
         .string()
         .min(1, 'Phone number is required')
-        .min(10, 'Phone number must be at least 10 characters'),
+        .regex(/^[0-9 ]+$/, 'Phone number must contain digits (and spaces) only')
+        .min(4, 'Phone number must be at least 4 digits')
+        .max(20, 'Phone number must be at most 20 characters'),
       user_type: z.enum(['individual', 'business']),
       company_name: z.string().optional(),
       bio: z.string().max(500, 'Bio must be 500 characters or less').optional(),
@@ -103,6 +105,7 @@ export default function EditProfilePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [lastSubmitTime, setLastSubmitTime] = useState<number | null>(null);
 
   const {
     register,
@@ -158,13 +161,26 @@ export default function EditProfilePage() {
 
   /**
    * Handle form submission
+   *
+   * When a new profile picture is selected, we send a multipart FormData
+   * payload so the backend can process the file upload and return the
+   * updated `profile_picture` URL.
    */
   const onSubmit = async (data: EditProfileFormData) => {
+    const now = Date.now();
+    if (lastSubmitTime && now - lastSubmitTime < 5000) {
+      toast.error(
+        'Please wait a moment',
+        'You are submitting too quickly. Please wait a few seconds before trying again.'
+      );
+      return;
+    }
+
+    setLastSubmitTime(now);
     setIsSubmitting(true);
 
     try {
       if (selectedFile) {
-        // Create FormData for file upload
         const formData = new FormData();
         formData.append('first_name', data.first_name);
         formData.append('last_name', data.last_name);
@@ -179,20 +195,8 @@ export default function EditProfilePage() {
         }
         formData.append('profile_picture', selectedFile);
 
-        // Note: You'll need to update the API endpoint to accept FormData
-        // For now, we'll call updateUser with the data object
-        // In a real implementation, you'd make a separate API call for file upload
-        await updateUser({
-          first_name: data.first_name,
-          last_name: data.last_name,
-          profile: {
-            country_code: data.profile.country_code,
-            phone_number: data.profile.phone_number,
-            user_type: data.profile.user_type,
-            company_name: data.profile.company_name,
-            bio: data.profile.bio,
-          },
-        });
+        // Use AuthContext update function, which now supports FormData
+        await (updateUser as any)(formData);
       } else {
         // Update without file
         await updateUser({

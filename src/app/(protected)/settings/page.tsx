@@ -6,7 +6,7 @@
  * @module SettingsPage
  */
 
-'use client';
+ 'use client';
 
 import {
   Box,
@@ -18,24 +18,28 @@ import {
   Separator,
   Field,
   Flex,
-  IconButton,
 } from '@chakra-ui/react';
 import { 
   FiSettings, 
   FiUser, 
   FiBell, 
   FiGlobe, 
-  FiAlertTriangle,
-  FiX,
 } from 'react-icons/fi';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import { useAuth } from '@/src/contexts/AuthContext';
 import useCustomToast from '@/src/hooks/useToast';
-import AuthNav from '@/src/components/layout/AuthNav';
-import Footer from '@/src/components/layout/Footer';
 import ProtectedRoute from '@/src/components/auth/ProtectedRoute';
 import { ROUTES, THEME } from '@/src/lib/constants';
+
+const AuthNav = dynamic(() => import('@/src/components/layout/AuthNav'), {
+  ssr: false,
+});
+
+const Footer = dynamic(() => import('@/src/components/layout/Footer'), {
+  ssr: false,
+});
 
 // ============================================================================
 // MAIN COMPONENT
@@ -55,7 +59,6 @@ export default function SettingsPage() {
   const [language, setLanguage] = useState<'en' | 'sw'>('en');
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   /**
    * Handle language toggle
@@ -67,27 +70,6 @@ export default function SettingsPage() {
       'Language preference updated',
       `Interface language changed to ${newLanguage === 'en' ? 'English' : 'Kiswahili'}`
     );
-  };
-
-  /**
-   * Handle delete account button click
-   */
-  const handleDeleteAccount = () => {
-    setIsDeleteModalOpen(true);
-  };
-
-  /**
-   * Confirm account deletion
-   */
-  const confirmDelete = () => {
-    toast.warning(
-      'Account deletion not yet implemented',
-      'This feature will be available in a future update.'
-    );
-    setIsDeleteModalOpen(false);
-    // Future: Call API to delete account, then logout
-    // await deleteAccount();
-    // await logout();
   };
 
   return (
@@ -363,131 +345,9 @@ export default function SettingsPage() {
                 </Stack>
               </Box>
 
-              {/* DANGER ZONE CARD */}
-              <Box
-                bg="white"
-                borderRadius="xl"
-                boxShadow="md"
-                p={8}
-                borderLeft="4px"
-                borderColor="red.500"
-              >
-                <Stack gap={6}>
-                  <Flex align="center" gap={3}>
-                    <Box as="span" display="inline-flex" alignItems="center">
-                      <FiAlertTriangle size={24} color="#DC2626" />
-                    </Box>
-                    <Heading fontSize="lg" color="red.600" fontWeight="bold">
-                      Danger Zone
-                    </Heading>
-                  </Flex>
-
-                  <Separator />
-
-                  <Stack gap={4}>
-                    <Box>
-                      <Text fontWeight="semibold" color="red.600" mb={2}>
-                        Delete Account
-                      </Text>
-                      <Text fontSize="sm" color="gray.600" mb={3}>
-                        Permanently delete your account and all data. This action cannot be undone.
-                      </Text>
-                      <Button
-                        colorScheme="red"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleDeleteAccount}
-                      >
-                        Delete Account
-                      </Button>
-                    </Box>
-                  </Stack>
-                </Stack>
-              </Box>
             </Stack>
           </Container>
         </Box>
-
-        {/* DELETE CONFIRMATION MODAL */}
-        {isDeleteModalOpen && (
-          <>
-            <Box
-              position="fixed"
-              top={0}
-              left={0}
-              right={0}
-              bottom={0}
-              bg="blackAlpha.600"
-              backdropFilter="blur(4px)"
-              zIndex={1000}
-              onClick={() => setIsDeleteModalOpen(false)}
-            />
-            <Box
-              position="fixed"
-              top="50%"
-              left="50%"
-              transform="translate(-50%, -50%)"
-              bg="white"
-              borderRadius="xl"
-              boxShadow="2xl"
-              w={{ base: '90%', md: '500px' }}
-              maxW="500px"
-              zIndex={1001}
-              p={6}
-            >
-              <Flex justify="space-between" align="center" mb={4}>
-                <Heading fontSize="xl" color="red.600" fontWeight="bold">
-                  Delete Account
-                </Heading>
-                <IconButton
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsDeleteModalOpen(false)}
-                  aria-label="Close modal"
-                >
-                  <FiX size={20} />
-                </IconButton>
-              </Flex>
-
-              <Stack gap={4} mb={6}>
-                <Box
-                  bg="red.50"
-                  border="1px solid"
-                  borderColor="red.200"
-                  borderRadius="md"
-                  p={4}
-                >
-                  <Flex align="start" gap={3}>
-                    <Box as="span" display="inline-flex" alignItems="center" color="red.600">
-                      <FiAlertTriangle size={20} />
-                    </Box>
-                    <Text fontSize="sm" fontWeight="semibold" color="red.800">
-                      This action is permanent and cannot be undone.
-                    </Text>
-                  </Flex>
-                </Box>
-                <Text color="gray.700">
-                  Are you absolutely sure you want to delete your account? All your events, cards, and data will be permanently removed.
-                </Text>
-              </Stack>
-
-              <Stack direction="row" gap={3} justify="flex-end">
-                <Button
-                  variant="ghost"
-                  onClick={() => setIsDeleteModalOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  colorScheme="red"
-                  onClick={confirmDelete}
-                >
-                  Yes, Delete My Account
-                </Button>
-              </Stack>
-            </Box>
-          </>
-        )}
 
         <Footer />
       </>

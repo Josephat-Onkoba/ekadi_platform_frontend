@@ -24,6 +24,9 @@ import {
   Button,
   Separator,
   SimpleGrid,
+  SkeletonCircle,
+  SkeletonText,
+  Skeleton,
 } from '@chakra-ui/react';
 import { 
   FiMail, 
@@ -34,12 +37,19 @@ import {
   FiEdit,
 } from 'react-icons/fi';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useAuth } from '@/src/contexts/AuthContext';
-import AuthNav from '@/src/components/layout/AuthNav';
-import Footer from '@/src/components/layout/Footer';
 import ProtectedRoute from '@/src/components/auth/ProtectedRoute';
 import { ROUTES, THEME } from '@/src/lib/constants';
 import { format } from 'date-fns';
+
+const AuthNav = dynamic(() => import('@/src/components/layout/AuthNav'), {
+  ssr: false,
+});
+
+const Footer = dynamic(() => import('@/src/components/layout/Footer'), {
+  ssr: false,
+});
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -75,7 +85,7 @@ function formatDate(dateString: string): string {
  * @returns Profile page component
  */
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   return (
     <ProtectedRoute>
@@ -120,57 +130,70 @@ export default function ProfilePage() {
                 <Stack gap={6}>
                   {/* AVATAR & NAME */}
                   <Flex align="center" gap={6} flexWrap="wrap">
-                    <Avatar.Root size="2xl">
-                      <Avatar.Image 
-                        src={user?.profile?.profile_picture || undefined}
-                      />
-                      <Avatar.Fallback 
-                        bg={THEME.COLORS.primary}
-                        border="4px solid"
-                        borderColor={THEME.COLORS.background}
-                      >
-                        {user?.first_name?.[0]}{user?.last_name?.[0]}
-                      </Avatar.Fallback>
-                    </Avatar.Root>
-
-                    <Stack gap={2} flex="1" minW="200px">
-                      <Flex align="center" gap={3} flexWrap="wrap">
-                        <Heading fontSize="3xl" color={THEME.COLORS.primary} fontWeight="bold">
-                          {user?.first_name || ''} {user?.last_name || ''}
-                        </Heading>
-                        {user?.profile?.user_type && (
-                          <Badge
-                            colorScheme={user.profile.user_type === 'business' ? 'purple' : 'green'}
-                            fontSize="sm"
-                            px={3}
-                            py={1}
-                            borderRadius="full"
+                    {loading ? (
+                      <>
+                        <SkeletonCircle size="24" />
+                        <Stack gap={2} flex="1" minW="200px">
+                          <Skeleton height="28px" width="60%" />
+                          <Skeleton height="20px" width="40%" />
+                          <Skeleton height="18px" width="30%" />
+                        </Stack>
+                      </>
+                    ) : (
+                      <>
+                        <Avatar.Root size="2xl">
+                          <Avatar.Image 
+                            src={user?.profile?.profile_picture || undefined}
+                          />
+                          <Avatar.Fallback 
+                            bg={THEME.COLORS.primary}
+                            border="4px solid"
+                            borderColor={THEME.COLORS.background}
                           >
-                            {user.profile.user_type === 'business' ? 'Business' : 'Individual'}
-                          </Badge>
-                        )}
-                      </Flex>
+                            {user?.first_name?.[0]}{user?.last_name?.[0]}
+                          </Avatar.Fallback>
+                        </Avatar.Root>
 
-                      {user?.profile?.company_name && (
-                        <Flex align="center" gap={2} color="gray.600">
-                          <Box as="span" display="inline-flex" alignItems="center">
-                            <FiBriefcase size={16} />
-                          </Box>
-                          <Text fontSize="lg">
-                            {user.profile.company_name}
-                          </Text>
-                        </Flex>
-                      )}
+                        <Stack gap={2} flex="1" minW="200px">
+                          <Flex align="center" gap={3} flexWrap="wrap">
+                            <Heading fontSize="3xl" color={THEME.COLORS.primary} fontWeight="bold">
+                              {user?.first_name || ''} {user?.last_name || ''}
+                            </Heading>
+                            {user?.profile?.user_type && (
+                              <Badge
+                                colorScheme={user.profile.user_type === 'business' ? 'purple' : 'green'}
+                                fontSize="sm"
+                                px={3}
+                                py={1}
+                                borderRadius="full"
+                              >
+                                {user.profile.user_type === 'business' ? 'Business' : 'Individual'}
+                              </Badge>
+                            )}
+                          </Flex>
 
-                      <Flex align="center" gap={2}>
-                        <Badge
-                          colorScheme={user?.email_verified ? 'green' : 'yellow'}
-                          variant="subtle"
-                        >
-                          {user?.email_verified ? '✓ Verified' : '⚠ Not Verified'}
-                        </Badge>
-                      </Flex>
-                    </Stack>
+                          {user?.profile?.company_name && (
+                            <Flex align="center" gap={2} color="gray.600">
+                              <Box as="span" display="inline-flex" alignItems="center">
+                                <FiBriefcase size={16} />
+                              </Box>
+                              <Text fontSize="lg">
+                                {user.profile.company_name}
+                              </Text>
+                            </Flex>
+                          )}
+
+                          <Flex align="center" gap={2}>
+                            <Badge
+                              colorScheme={user?.email_verified ? 'green' : 'yellow'}
+                              variant="subtle"
+                            >
+                              {user?.email_verified ? '✓ Verified' : '⚠ Not Verified'}
+                            </Badge>
+                          </Flex>
+                        </Stack>
+                      </>
+                    )}
                   </Flex>
 
                   {/* BIO (if exists) */}

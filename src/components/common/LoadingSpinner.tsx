@@ -59,7 +59,7 @@ export default function LoadingSpinner({
   if (fullScreen) {
     return (
       <Center minH="100vh" flexDirection="column" gap={4}>
-        <Spinner size={size} thickness="4px" speed="0.65s" color="teal.500" />
+        <Spinner size={size} color="teal.500" />
         {message && <Text color="gray.500">{message}</Text>}
       </Center>
     );
@@ -68,7 +68,7 @@ export default function LoadingSpinner({
   // Inline loading state
   return (
     <Center py={8}>
-      <Spinner size={size} thickness="4px" speed="0.65s" color="teal.500" />
+      <Spinner size={size} color="teal.500" />
     </Center>
   );
 }

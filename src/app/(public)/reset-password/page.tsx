@@ -25,7 +25,6 @@ import {
   Field,
   Input,
   Button,
-  IconButton,
   Icon,
   Collapsible,
 } from '@chakra-ui/react';
@@ -34,12 +33,16 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { confirmPasswordReset } from '@/src/lib/auth';
 import useCustomToast from '@/src/hooks/useToast';
-import PublicNav from '@/src/components/layout/PublicNav';
 import { ROUTES, THEME } from '@/src/lib/constants';
+
+const PublicNav = dynamic(() => import('@/src/components/layout/PublicNav'), {
+  ssr: false,
+});
 
 // ============================================================================
 // VALIDATION SCHEMA
@@ -102,7 +105,19 @@ export default function ResetPasswordConfirmPage() {
     setToken(tokenParam);
   }, [searchParams, toast]);
 
+  const [lastSubmitTime, setLastSubmitTime] = useState<number | null>(null);
+
   const onSubmit = async (data: ResetConfirmFormData) => {
+    const now = Date.now();
+    if (lastSubmitTime && now - lastSubmitTime < 5000) {
+      toast.error(
+        'Please wait a moment',
+        'You are submitting too quickly. Please wait a few seconds before trying again.'
+      );
+      return;
+    }
+
+    setLastSubmitTime(now);
     if (!token) {
       toast.error('Invalid Token', 'Reset token is missing. Please request a new reset link.');
       return;
@@ -156,7 +171,7 @@ export default function ResetPasswordConfirmPage() {
           >
             {/* INVALID TOKEN STATE */}
             {!tokenValid ? (
-              <Stack spacing={6} textAlign="center">
+              <Stack gap={6} textAlign="center">
                 <Icon
                   as={FiXCircle}
                   w={16}
@@ -182,7 +197,7 @@ export default function ResetPasswordConfirmPage() {
               </Stack>
             ) : resetSuccess ? (
               /* SUCCESS STATE */
-              <Stack spacing={6} textAlign="center">
+              <Stack gap={6} textAlign="center">
                 <Box
                   bg="green.50"
                   borderRadius="full"
@@ -218,9 +233,9 @@ export default function ResetPasswordConfirmPage() {
               </Stack>
             ) : (
               /* FORM STATE */
-              <Stack spacing={6}>
+              <Stack gap={6}>
                 {/* HEADER */}
-                <Stack spacing={3} textAlign="center">
+                <Stack gap={3} textAlign="center">
                   <Heading 
                     fontSize="2xl" 
                     color={THEME.COLORS.primary}
@@ -235,7 +250,7 @@ export default function ResetPasswordConfirmPage() {
 
                 {/* FORM */}
                 <form onSubmit={handleSubmit(onSubmit)}>
-                  <Stack spacing={5}>
+                  <Stack gap={5}>
                     {/* NEW PASSWORD */}
                     <Field.Root invalid={!!errors.password} w="100%">
                       <Field.Label fontWeight="semibold" color="gray.700" mb={3}>
@@ -254,20 +269,6 @@ export default function ResetPasswordConfirmPage() {
                           borderColor={errors.password ? THEME.COLORS.error : 'gray.200'}
                           color={THEME.COLORS.textPrimary}
                           className="registration-input"
-                          sx={{
-                            backgroundColor: `${THEME.COLORS.background} !important`,
-                            background: `${THEME.COLORS.background} !important`,
-                            '&:hover': {
-                              backgroundColor: `${THEME.COLORS.background} !important`,
-                              background: `${THEME.COLORS.background} !important`,
-                            },
-                            '&:focus': {
-                              backgroundColor: `${THEME.COLORS.background} !important`,
-                              background: `${THEME.COLORS.background} !important`,
-                              borderColor: `${THEME.COLORS.primary} !important`,
-                              boxShadow: `0 0 0 3px ${THEME.COLORS.primary}20 !important`,
-                            },
-                          }}
                           _placeholder={{
                             color: 'gray.500',
                             opacity: 1,
@@ -275,9 +276,8 @@ export default function ResetPasswordConfirmPage() {
                           {...register('password')}
                         />
                         <Box position="absolute" right="0.5rem" top="50%" transform="translateY(-50%)" zIndex={2}>
-                          <IconButton
+                          <Button
                             aria-label="Toggle password visibility"
-                            icon={showPassword ? <FiEyeOff /> : <FiEye />}
                             onClick={() => setShowPassword(!showPassword)}
                             variant="ghost"
                             size="sm"
@@ -287,7 +287,11 @@ export default function ResetPasswordConfirmPage() {
                               color: THEME.COLORS.primary,
                             }}
                             borderRadius="md"
-                          />
+                            minW="auto"
+                            p={0}
+                          >
+                            {showPassword ? <FiEyeOff /> : <FiEye />}
+                          </Button>
                         </Box>
                       </Box>
                       <Field.ErrorText>
@@ -313,20 +317,6 @@ export default function ResetPasswordConfirmPage() {
                           borderColor={errors.password2 ? THEME.COLORS.error : 'gray.200'}
                           color={THEME.COLORS.textPrimary}
                           className="registration-input"
-                          sx={{
-                            backgroundColor: `${THEME.COLORS.background} !important`,
-                            background: `${THEME.COLORS.background} !important`,
-                            '&:hover': {
-                              backgroundColor: `${THEME.COLORS.background} !important`,
-                              background: `${THEME.COLORS.background} !important`,
-                            },
-                            '&:focus': {
-                              backgroundColor: `${THEME.COLORS.background} !important`,
-                              background: `${THEME.COLORS.background} !important`,
-                              borderColor: `${THEME.COLORS.primary} !important`,
-                              boxShadow: `0 0 0 3px ${THEME.COLORS.primary}20 !important`,
-                            },
-                          }}
                           _placeholder={{
                             color: 'gray.500',
                             opacity: 1,
@@ -334,9 +324,8 @@ export default function ResetPasswordConfirmPage() {
                           {...register('password2')}
                         />
                         <Box position="absolute" right="0.5rem" top="50%" transform="translateY(-50%)" zIndex={2}>
-                          <IconButton
+                          <Button
                             aria-label="Toggle password visibility"
-                            icon={showPassword2 ? <FiEyeOff /> : <FiEye />}
                             onClick={() => setShowPassword2(!showPassword2)}
                             variant="ghost"
                             size="sm"
@@ -346,7 +335,11 @@ export default function ResetPasswordConfirmPage() {
                               color: THEME.COLORS.primary,
                             }}
                             borderRadius="md"
-                          />
+                            minW="auto"
+                            p={0}
+                          >
+                            {showPassword2 ? <FiEyeOff /> : <FiEye />}
+                          </Button>
                         </Box>
                       </Box>
                       <Field.ErrorText>
@@ -358,7 +351,7 @@ export default function ResetPasswordConfirmPage() {
                     <Box>
                       <Button
                         onClick={() => setShowRequirements(!showRequirements)}
-                        variant="link"
+                        variant="ghost"
                         size="sm"
                         color={THEME.COLORS.primary}
                         fontWeight="semibold"
@@ -367,12 +360,14 @@ export default function ResetPasswordConfirmPage() {
                         h="auto"
                         _hover={{
                           textDecoration: 'underline',
-                        }} w={4}
-                            h={4}
-                          />
-                        }
+                          bg: 'transparent',
+                        }}
+                        display="inline-flex"
+                        alignItems="center"
+                        gap={1}
                       >
                         Password Requirements
+                        {showRequirements ? <FiChevronUp /> : <FiChevronDown />}
                       </Button>
                       <Collapsible.Root open={showRequirements}>
                         <Collapsible.Content>
@@ -384,7 +379,7 @@ export default function ResetPasswordConfirmPage() {
                             borderLeft="3px solid"
                             borderColor={THEME.COLORS.primary}
                           >
-                            <Stack spacing={1.5} color="gray.700">
+                            <Stack gap={1.5} color="gray.700">
                               <Text fontSize="sm">• At least 8 characters</Text>
                               <Text fontSize="sm">• One uppercase letter</Text>
                               <Text fontSize="sm">• One lowercase letter</Text>

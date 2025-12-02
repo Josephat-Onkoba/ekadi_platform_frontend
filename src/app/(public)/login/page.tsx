@@ -23,7 +23,6 @@ import {
   Field,
   Input,
   Button,
-  IconButton,
   Link as ChakraLink,
   Separator,
 } from '@chakra-ui/react';
@@ -32,10 +31,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Link from 'next/link';
-import { useState } from 'react';
+import dynamic from 'next/dynamic';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/src/contexts/AuthContext';
 import useCustomToast from '@/src/hooks/useToast';
-import PublicNav from '@/src/components/layout/PublicNav';
+const PublicNav = dynamic(() => import('@/src/components/layout/PublicNav'), {
+  ssr: false,
+});
 import { ROUTES, THEME } from '@/src/lib/constants';
 import { LoginCredentials } from '@/src/types';
 
@@ -57,6 +59,8 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastSubmitTime, setLastSubmitTime] = useState<number | null>(null);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const { login } = useAuth();
   const toast = useCustomToast();
@@ -64,13 +68,41 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     mode: 'onChange',
   });
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const storedEmail = localStorage.getItem('ekadi_remember_email');
+    if (storedEmail) {
+      setValue('email', storedEmail);
+      setRememberMe(true);
+    }
+  }, [setValue]);
+
   const onSubmit = async (data: LoginCredentials) => {
+    const now = Date.now();
+    if (lastSubmitTime && now - lastSubmitTime < 5000) {
+      toast.error(
+        'Please wait a moment',
+        'You are submitting too quickly. Please wait a few seconds before trying again.'
+      );
+      return;
+    }
+
+    setLastSubmitTime(now);
+
+    if (typeof window !== 'undefined') {
+      if (rememberMe) {
+        localStorage.setItem('ekadi_remember_email', data.email);
+      } else {
+        localStorage.removeItem('ekadi_remember_email');
+      }
+    }
     setIsSubmitting(true);
     try {
       await login(data);
@@ -116,7 +148,7 @@ export default function LoginPage() {
             transition="all 0.2s"
           >
             {/* HEADER */}
-            <Stack spacing={4} mb={8} textAlign="center">
+            <Stack gap={4} mb={8} textAlign="center">
               <Heading 
                 fontSize="2xl" 
                 color={THEME.COLORS.primary}
@@ -131,7 +163,7 @@ export default function LoginPage() {
 
             {/* FORM */}
             <form onSubmit={handleSubmit(onSubmit)}>
-              <Stack spacing={5}>
+              <Stack gap={5}>
                 {/* EMAIL */}
                 <Field.Root invalid={!!errors.email} w="100%">
                   <Field.Label fontWeight="semibold" color="gray.700" mb={3}>
@@ -148,20 +180,6 @@ export default function LoginPage() {
                     border="2px solid"
                     borderColor={errors.email ? THEME.COLORS.error : "gray.200"}
                     className="registration-input"
-                    sx={{
-                      backgroundColor: `${THEME.COLORS.background} !important`,
-                      background: `${THEME.COLORS.background} !important`,
-                      '&:hover': {
-                        backgroundColor: `${THEME.COLORS.background} !important`,
-                        background: `${THEME.COLORS.background} !important`,
-                      },
-                      '&:focus': {
-                        backgroundColor: `${THEME.COLORS.background} !important`,
-                        background: `${THEME.COLORS.background} !important`,
-                        borderColor: `${THEME.COLORS.primary} !important`,
-                        boxShadow: `0 0 0 3px ${THEME.COLORS.primary}20 !important`,
-                      },
-                    }}
                     _placeholder={{
                       color: "gray.500",
                       opacity: 1,
@@ -190,20 +208,6 @@ export default function LoginPage() {
                       border="2px solid"
                       borderColor={errors.password ? THEME.COLORS.error : "gray.200"}
                       className="registration-input"
-                      sx={{
-                        backgroundColor: `${THEME.COLORS.background} !important`,
-                        background: `${THEME.COLORS.background} !important`,
-                        '&:hover': {
-                          backgroundColor: `${THEME.COLORS.background} !important`,
-                          background: `${THEME.COLORS.background} !important`,
-                        },
-                        '&:focus': {
-                          backgroundColor: `${THEME.COLORS.background} !important`,
-                          background: `${THEME.COLORS.background} !important`,
-                          borderColor: `${THEME.COLORS.primary} !important`,
-                          boxShadow: `0 0 0 3px ${THEME.COLORS.primary}20 !important`,
-                        },
-                      }}
                       _placeholder={{
                         color: "gray.500",
                         opacity: 1,
@@ -211,9 +215,8 @@ export default function LoginPage() {
                       {...register('password')}
                     />
                     <Box position="absolute" right="0.5rem" top="50%" transform="translateY(-50%)" zIndex={2}>
-                      <IconButton
+                      <Button
                         aria-label="Toggle password visibility"
-                        icon={showPassword ? <FiEyeOff /> : <FiEye />}
                         onClick={() => setShowPassword(!showPassword)}
                         variant="ghost"
                         size="sm"
@@ -223,7 +226,11 @@ export default function LoginPage() {
                           color: THEME.COLORS.primary,
                         }}
                         borderRadius="md"
-                      />
+                        minW="auto"
+                        p={0}
+                      >
+                        {showPassword ? <FiEyeOff /> : <FiEye />}
+                      </Button>
                     </Box>
                   </Box>
                   <Field.ErrorText>
@@ -231,8 +238,21 @@ export default function LoginPage() {
                   </Field.ErrorText>
                 </Field.Root>
 
-                {/* FORGOT PASSWORD LINK */}
-                <Box textAlign="right">
+                {/* REMEMBER ME + FORGOT PASSWORD */}
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <input
+                      id="rememberMe"
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                    />
+                    <label htmlFor="rememberMe">
+                      <Text fontSize="sm" color="gray.600">
+                        Remember me
+                      </Text>
+                    </label>
+                  </Box>
                   <ChakraLink
                     as={Link}
                     href={ROUTES.PUBLIC.FORGOT_PASSWORD}

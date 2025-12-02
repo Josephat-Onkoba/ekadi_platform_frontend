@@ -434,7 +434,7 @@ export default function AuthNav() {
                 <IconButton
                   variant="ghost"
                   aria-label="Close menu"
-                  size="sm"
+                  size="lg"
                   color={THEME.COLORS.primary}
                   _hover={{ 
                     bg: THEME.COLORS.background,
@@ -442,9 +442,11 @@ export default function AuthNav() {
                     transform: 'rotate(90deg)'
                   }}
                   transition="all 0.2s"
-                  borderRadius="md"
+                  borderRadius="full"
+                  minW="44px"
+                  minH="44px"
                 >
-                  <FiX size={20} />
+                  <FiX size={24} />
                 </IconButton>
               </DrawerCloseTrigger>
             </Flex>

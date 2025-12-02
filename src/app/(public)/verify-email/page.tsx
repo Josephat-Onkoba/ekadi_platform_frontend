@@ -26,12 +26,16 @@ import {
 } from '@chakra-ui/react';
 import { FiCheckCircle, FiXCircle, FiAlertCircle } from 'react-icons/fi';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { verifyEmail } from '@/src/lib/auth';
 import useCustomToast from '@/src/hooks/useToast';
-import PublicNav from '@/src/components/layout/PublicNav';
 import { ROUTES, THEME } from '@/src/lib/constants';
+
+const PublicNav = dynamic(() => import('@/src/components/layout/PublicNav'), {
+  ssr: false,
+});
 
 // ============================================================================
 // TYPES
@@ -136,14 +140,12 @@ export default function VerifyEmailPage() {
             p={8}
             textAlign="center"
           >
-            <Stack spacing={6} align="center">
+            <Stack gap={6} align="center">
               {/* LOADING STATE */}
               {status === 'loading' && (
                 <>
                   <Spinner
                     size="xl"
-                    thickness="4px"
-                    speed="0.65s"
                     color={THEME.COLORS.primary}
                   />
                   <Heading fontSize="xl" color="gray.700">
@@ -246,7 +248,7 @@ export default function VerifyEmailPage() {
                   <Text color="gray.600">
                     Your verification link has expired. Please request a new one.
                   </Text>
-                  <Stack direction="row" spacing={4} w="full">
+                  <Stack direction="row" gap={4} w="full">
                     <Link href={`${ROUTES.PUBLIC.EMAIL_SENT}?resend=true`} style={{ flex: 1 }}>
                       <Button
                         {...THEME.BUTTON_STYLES.primaryButton}

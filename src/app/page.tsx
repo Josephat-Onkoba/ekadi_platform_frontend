@@ -40,11 +40,19 @@ import {
   FiBarChart
 } from 'react-icons/fi';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { ReactNode } from 'react';
 import { IconType } from 'react-icons';
-import PublicNav from '@/src/components/layout/PublicNav';
-import Footer from '@/src/components/layout/Footer';
 import { ROUTES, THEME } from '@/src/lib/constants';
+
+// Defer nav/footer loading to reduce landing page initial bundle
+const PublicNav = dynamic(() => import('@/src/components/layout/PublicNav'), {
+  ssr: false,
+});
+
+const Footer = dynamic(() => import('@/src/components/layout/Footer'), {
+  ssr: false,
+});
 
 // ============================================================================
 // TYPES
@@ -123,49 +131,6 @@ const Section = ({ children, bg = "white", py = { base: 12, md: 20 } }: SectionP
     {children}
   </Box>
 );
-
-/**
- * CTA Button Component
- * Primary call-to-action button with consistent styling
- */
-const CTAButton = ({ 
-  href, 
-  children, 
-  variant = "primary" 
-}: { 
-  href: string; 
-  children: ReactNode; 
-  variant?: "primary" | "secondary";
-}) => {
-  const isPrimary = variant === "primary";
-  
-  return (
-    <Link href={href}>
-      <Button
-        size="lg"
-        h={{ base: "50px", md: "56px" }}
-        px={{ base: 6, md: 8 }}
-        fontSize={{ base: "md", md: "lg" }}
-        fontWeight="bold"
-        borderRadius="lg"
-        bg={isPrimary ? "coral.500" : "transparent"}
-        color={isPrimary ? "white" : "teal.600"}
-        border={isPrimary ? "none" : "2px solid"}
-        borderColor={isPrimary ? "transparent" : "teal.600"}
-        _hover={{ 
-          bg: isPrimary ? "coral.600" : "teal.50",
-          transform: 'translateY(-2px)',
-          boxShadow: isPrimary ? "0 10px 20px rgba(255, 111, 97, 0.3)" : "md",
-        }}
-        _active={{
-          transform: 'translateY(0)',
-        }}
-        transition="all 0.3s ease" >
-        {children}
-      </Button>
-    </Link>
-  );
-};
 
 // ============================================================================
 // FEATURES DATA
@@ -268,7 +233,7 @@ export default function HomePage() {
         >
           <Container maxW="container.xl">
             <Stack 
-              spacing={{ base: 6, md: 8 }} 
+              gap={{ base: 6, md: 8 }} 
               textAlign="center" 
               maxW="4xl" 
               mx="auto"
@@ -329,7 +294,7 @@ export default function HomePage() {
               {/* Hero CTA Buttons */}
               <Stack
                 direction={{ base: 'column', sm: 'row' }}
-                spacing={4}
+                gap={4}
                 justify="center"
                 pt={4}
               >
@@ -373,7 +338,7 @@ export default function HomePage() {
         <Box id="features" as="section" bg="white" py={{ base: 20, md: 28 }} scrollMarginTop="70px">
           <Container maxW="container.xl" px={{ base: 4, md: 6 }}>
             {/* Section Header */}
-            <Stack spacing={4} mb={{ base: 12, md: 20 }} textAlign="center">
+            <Stack gap={4} mb={{ base: 12, md: 20 }} textAlign="center">
               <Text
                 fontSize="sm"
                 fontWeight="bold"
@@ -423,7 +388,7 @@ export default function HomePage() {
             ==================================== */}
         <Box id="how-it-works" as="section" bg={THEME.COLORS.background} py={{ base: 20, md: 28 }} scrollMarginTop="70px">
           <Container maxW="container.xl" px={{ base: 4, md: 6 }}>
-            <Stack spacing={4} mb={{ base: 12, md: 20 }} textAlign="center">
+            <Stack gap={4} mb={{ base: 12, md: 20 }} textAlign="center">
               <Text
                 fontSize="sm"
                 fontWeight="bold"
@@ -534,7 +499,7 @@ export default function HomePage() {
               gap={{ base: 8, md: 12 }}
               textAlign="center"
             >
-              <Stack spacing={3}>
+              <Stack gap={3}>
                 <Text fontSize="3xl" fontWeight="bold" color={THEME.COLORS.primary}>
                   10K+
                 </Text>
@@ -546,7 +511,7 @@ export default function HomePage() {
                 </Text>
               </Stack>
               
-              <Stack spacing={3}>
+              <Stack gap={3}>
                 <Text fontSize="3xl" fontWeight="bold" color={THEME.COLORS.primary}>
                   98%
                 </Text>
@@ -558,7 +523,7 @@ export default function HomePage() {
                 </Text>
               </Stack>
               
-              <Stack spacing={3}>
+              <Stack gap={3}>
                 <Text fontSize="3xl" fontWeight="bold" color={THEME.COLORS.primary}>
                   24/7
                 </Text>
@@ -578,7 +543,7 @@ export default function HomePage() {
             ==================================== */}
         <Box id="testimonials" as="section" bg={THEME.COLORS.background} py={{ base: 20, md: 28 }} scrollMarginTop="70px">
           <Container maxW="container.xl" px={{ base: 4, md: 6 }}>
-            <Stack spacing={4} mb={{ base: 12, md: 20 }} textAlign="center">
+            <Stack gap={4} mb={{ base: 12, md: 20 }} textAlign="center">
               <Text
                 fontSize="sm"
                 fontWeight="bold"
@@ -663,7 +628,7 @@ export default function HomePage() {
         >
           <Container maxW="container.md">
             <Stack 
-              spacing={{ base: 6, md: 8 }} 
+              gap={{ base: 6, md: 8 }} 
               textAlign="center" 
               color="white"
             >

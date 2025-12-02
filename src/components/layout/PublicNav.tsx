@@ -23,7 +23,6 @@ import {
   Text,
   Container,
   Icon,
-  IconButton,
   VStack,
   HStack,
 } from '@chakra-ui/react';
@@ -267,7 +266,7 @@ export default function PublicNav() {
           <Flex justify="space-between" align="center" h="full">
             {/* LEFT - Logo */}
             <Link href={ROUTES.PUBLIC.HOME} aria-label="Go to homepage">
-              <HStack spacing={2} cursor="pointer">
+              <HStack gap={2} cursor="pointer">
                 <Text 
                   fontSize={{ base: "xl", md: "2xl" }}
                   fontWeight="bold" 
@@ -303,26 +302,32 @@ export default function PublicNav() {
             {/* RIGHT - Auth Buttons */}
             <Flex align="center" gap={3}>
               {/* Desktop Auth Buttons */}
-              <HStack spacing={2} display={{ base: 'none', md: 'flex' }}>
+              <HStack gap={2} display={{ base: 'none', md: 'flex' }}>
                 <Link href={ROUTES.PUBLIC.LOGIN}>
                   <Button
                     variant="ghost"
-                    leftIcon={<Icon as={FiLogIn} boxSize={4} />}
                     color="gray.700"
                     _hover={{ bg: 'gray.50', color: THEME.COLORS.primary }}
                     size="md"
                     fontWeight="medium"
+                    display="inline-flex"
+                    alignItems="center"
+                    gap={2}
                   >
+                    <Icon as={FiLogIn} boxSize={4} />
                     Login
                   </Button>
                 </Link>
                 <Link href={ROUTES.PUBLIC.REGISTER}>
                   <Button
                     {...THEME.BUTTON_STYLES.primaryButton}
-                    leftIcon={<Icon as={FiUserPlus} boxSize={4} />}
                     size="md"
                     boxShadow="sm"
+                    display="inline-flex"
+                    alignItems="center"
+                    gap={2}
                   >
+                    <Icon as={FiUserPlus} boxSize={4} />
                     Get Started
                   </Button>
                 </Link>
@@ -371,7 +376,12 @@ export default function PublicNav() {
         size="sm"
       >
         <DrawerBackdrop bg="blackAlpha.600" backdropFilter="blur(4px)" />
-        <DrawerContent bg="white" boxShadow="2xl">
+        <DrawerContent
+          bg="white"
+          boxShadow="2xl"
+          borderLeftRadius="2xl"
+          transition="transform 0.2s ease-out, opacity 0.2s ease-out"
+        >
           <DrawerHeader 
             borderBottomWidth="1px" 
             borderColor="gray.100"
@@ -379,7 +389,7 @@ export default function PublicNav() {
             bg={THEME.COLORS.background}
           >
             <Flex justify="space-between" align="center">
-              <HStack spacing={2}>
+              <HStack gap={2}>
                 <Box
                   w={8}
                   h={8}
@@ -398,29 +408,32 @@ export default function PublicNav() {
                 </Text>
               </HStack>
               <DrawerCloseTrigger asChild>
-                <IconButton
-                  icon={<Icon as={FiX} boxSize={5} />}
+                <Button
                   variant="ghost"
                   aria-label="Close menu"
-                  size="sm"
+                  size="lg"
                   color={THEME.COLORS.primary}
+                  minW="auto"
+                  p={0}
                   _hover={{ 
                     bg: THEME.COLORS.background,
                     color: THEME.COLORS.primary,
                     transform: 'rotate(90deg)'
                   }}
                   transition="all 0.2s"
-                  borderRadius="md"
-                />
+                  borderRadius="full"
+                >
+                  <Icon as={FiX} boxSize={6} />
+                </Button>
               </DrawerCloseTrigger>
             </Flex>
           </DrawerHeader>
 
           <DrawerBody p={6} bg="white">
-            <VStack spacing={6} align="stretch">
+            <VStack gap={6} align="stretch">
               {/* Navigation Links (if any) */}
               {navItems.length > 0 && (
-                <VStack spacing={3} align="stretch">
+                <VStack gap={3} align="stretch">
                   <Text 
                     fontSize="xs" 
                     fontWeight="bold" 
@@ -435,7 +448,8 @@ export default function PublicNav() {
                       key={item.href}
                       href={item.href}
                       label={item.label}
-                      isActive={isActiveRoute(item.href)}
+                      // Treat all section links as "active" when on the home route
+                      isActive={pathname === ROUTES.PUBLIC.HOME}
                       onClick={() => setIsOpen(false)}
                       sectionId={item.sectionId}
                       onScrollToSection={handleScrollToSection}
@@ -445,7 +459,7 @@ export default function PublicNav() {
               )}
 
               {/* Auth Buttons */}
-              <VStack spacing={4} align="stretch" pt={navItems.length > 0 ? 2 : 0}>
+              <VStack gap={4} align="stretch" pt={navItems.length > 0 ? 2 : 0}>
                 <Text 
                   fontSize="xs" 
                   fontWeight="bold" 
@@ -459,13 +473,18 @@ export default function PublicNav() {
                   <Button
                     {...THEME.BUTTON_STYLES.secondaryButton}
                     w="full"
-                    variant="outline"
-                    leftIcon={<Icon as={FiLogIn} boxSize={5} />}
+                    variant={pathname === ROUTES.PUBLIC.LOGIN ? 'solid' : 'outline'}
+                    bg={pathname === ROUTES.PUBLIC.LOGIN ? THEME.COLORS.primary : 'transparent'}
+                    color={pathname === ROUTES.PUBLIC.LOGIN ? 'white' : THEME.COLORS.primary}
                     size="lg"
                     justifyContent="flex-start"
                     borderRadius="lg"
                     h="56px"
+                    display="inline-flex"
+                    alignItems="center"
+                    gap={2}
                   >
+                    <Icon as={FiLogIn} boxSize={5} />
                     Login
                   </Button>
                 </Link>
@@ -473,12 +492,16 @@ export default function PublicNav() {
                   <Button
                     {...THEME.BUTTON_STYLES.primaryButton}
                     w="full"
-                    leftIcon={<Icon as={FiUserPlus} boxSize={5} />}
+                    bg={pathname === ROUTES.PUBLIC.REGISTER ? THEME.COLORS.accent : THEME.COLORS.primary}
                     size="lg"
                     justifyContent="flex-start"
                     borderRadius="lg"
                     h="56px"
+                    display="inline-flex"
+                    alignItems="center"
+                    gap={2}
                   >
+                    <Icon as={FiUserPlus} boxSize={5} />
                     Get Started Free
                   </Button>
                 </Link>
@@ -494,7 +517,7 @@ export default function PublicNav() {
                 borderColor="gray.200"
                 boxShadow="sm"
               >
-                <HStack spacing={3} mb={3}>
+                <HStack gap={3} mb={3}>
                   <Box
                     p={2}
                     borderRadius="lg"

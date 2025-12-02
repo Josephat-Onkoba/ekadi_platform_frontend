@@ -32,11 +32,15 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import { requestPasswordReset } from '@/src/lib/auth';
 import useCustomToast from '@/src/hooks/useToast';
-import PublicNav from '@/src/components/layout/PublicNav';
 import { ROUTES, THEME } from '@/src/lib/constants';
+
+const PublicNav = dynamic(() => import('@/src/components/layout/PublicNav'), {
+  ssr: false,
+});
 
 // ============================================================================
 // VALIDATION SCHEMA
@@ -55,6 +59,7 @@ type ResetRequestFormData = z.infer<typeof resetRequestSchema>;
 export default function ForgotPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [lastSubmitTime, setLastSubmitTime] = useState<number | null>(null);
 
   const toast = useCustomToast();
 
@@ -69,6 +74,16 @@ export default function ForgotPasswordPage() {
   });
 
   const onSubmit = async (data: ResetRequestFormData) => {
+    const now = Date.now();
+    if (lastSubmitTime && now - lastSubmitTime < 5000) {
+      toast.error(
+        'Please wait a moment',
+        'You are submitting too quickly. Please wait a few seconds before trying again.'
+      );
+      return;
+    }
+
+    setLastSubmitTime(now);
     setIsSubmitting(true);
     try {
       await requestPasswordReset(data.email);
@@ -109,7 +124,7 @@ export default function ForgotPasswordPage() {
           >
             {/* BACK LINK */}
             <Link href={ROUTES.PUBLIC.LOGIN} style={{ display: 'inline-block', marginBottom: '1rem' }}>
-              <Button />}
+              <Button
                 variant="ghost"
                 size="sm"
                 mb={4}
@@ -125,9 +140,9 @@ export default function ForgotPasswordPage() {
 
             {/* FORM STATE */}
             {!emailSent ? (
-              <Stack spacing={6}>
+              <Stack gap={6}>
                 {/* HEADER */}
-                <Stack spacing={3} textAlign="center">
+                <Stack gap={3} textAlign="center">
                   <Icon
                     as={FiMail}
                     w={12}
@@ -149,7 +164,7 @@ export default function ForgotPasswordPage() {
 
                 {/* FORM */}
                 <form onSubmit={handleSubmit(onSubmit)}>
-                  <Stack spacing={5}>
+                  <Stack gap={5}>
                     {/* EMAIL */}
                     <Field.Root invalid={!!errors.email} w="100%">
                       <Field.Label fontWeight="semibold" color="gray.700" mb={3}>
@@ -167,20 +182,6 @@ export default function ForgotPasswordPage() {
                         bg={THEME.COLORS.background}
                         color={THEME.COLORS.textPrimary}
                         className="registration-input"
-                        sx={{
-                          backgroundColor: `${THEME.COLORS.background} !important`,
-                          background: `${THEME.COLORS.background} !important`,
-                          '&:hover': {
-                            backgroundColor: `${THEME.COLORS.background} !important`,
-                            background: `${THEME.COLORS.background} !important`,
-                          },
-                          '&:focus': {
-                            backgroundColor: `${THEME.COLORS.background} !important`,
-                            background: `${THEME.COLORS.background} !important`,
-                            borderColor: `${THEME.COLORS.primary} !important`,
-                            boxShadow: `0 0 0 3px ${THEME.COLORS.primary}20 !important`,
-                          },
-                        }}
                         _placeholder={{
                           color: 'gray.500',
                           opacity: 1,
@@ -219,7 +220,7 @@ export default function ForgotPasswordPage() {
               </Stack>
             ) : (
               /* SUCCESS STATE */
-              <Stack spacing={6} textAlign="center">
+              <Stack gap={6} textAlign="center">
                 <Box
                   bg="green.50"
                   borderRadius="full"

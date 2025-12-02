@@ -26,7 +26,7 @@ import {
   Heading,
   Icon,
   HStack,
-  IconButton,
+  Button,
   Separator,
 } from '@chakra-ui/react';
 import { 
@@ -73,7 +73,7 @@ const FooterLink = ({ href, children }: FooterLinkProps) => (
 );
 
 const FooterSection = ({ title, links }: FooterSectionProps) => (
-  <Stack spacing={3}>
+  <Stack gap={3}>
     <Heading 
       as="h3" 
       fontSize="sm" 
@@ -84,7 +84,7 @@ const FooterSection = ({ title, links }: FooterSectionProps) => (
     >
       {title}
     </Heading>
-    <Stack spacing={2}>
+    <Stack gap={2}>
       {links.map((link) => (
         <FooterLink key={link.href} href={link.href}>
           {link.label}
@@ -164,11 +164,11 @@ export default function Footer() {
         {/* Brand + Links Grid */}
         <SimpleGrid 
           columns={{ base: 1, sm: 2, md: 5 }} 
-          spacing={{ base: 8, md: 6 }}
+          gap={{ base: 8, md: 6 }}
           mb={8}
         >
           {/* Brand Section */}
-          <Stack spacing={4}>
+          <Stack gap={4}>
             <Heading 
               as="h2" 
               fontSize="2xl" 
@@ -207,25 +207,30 @@ export default function Footer() {
           </Text>
 
           {/* Social Links */}
-          <HStack spacing={1}>
+          <HStack gap={1}>
             {SOCIAL_LINKS.map((social) => (
-              <IconButton
+              <ChakraLink
                 key={social.label}
-                as="a"
                 href={social.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={social.label}
-                icon={<Icon as={social.icon} boxSize={5} />}
-                variant="ghost"
-                colorScheme="gray"
-                size="md"
-                _hover={{ 
-                  bg: THEME.COLORS.background,
-                  color: THEME.COLORS.primary,
-                }}
-                transition="all 0.2s"
-              />
+              >
+                <Button
+                  aria-label={social.label}
+                  variant="ghost"
+                  colorScheme="gray"
+                  size="md"
+                  minW="auto"
+                  p={0}
+                  _hover={{ 
+                    bg: THEME.COLORS.background,
+                    color: THEME.COLORS.primary,
+                  }}
+                  transition="all 0.2s"
+                >
+                  <Icon as={social.icon} boxSize={5} />
+                </Button>
+              </ChakraLink>
             ))}
           </HStack>
         </Flex>

@@ -34,12 +34,16 @@ import {
   FiCreditCard,
 } from 'react-icons/fi';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useAuth } from '@/src/contexts/AuthContext';
-import AuthNav from '@/src/components/layout/AuthNav';
-import Footer from '@/src/components/layout/Footer';
 import ProtectedRoute from '@/src/components/auth/ProtectedRoute';
 import { ROUTES, THEME } from '@/src/lib/constants';
 import { IconType } from 'react-icons';
+
+// Lazy-load heavier layout pieces to keep initial bundle smaller
+const AuthNav = dynamic(() => import('@/src/components/layout/AuthNav'), {
+  ssr: false,
+});
 
 // ============================================================================
 // TYPES
@@ -292,8 +296,13 @@ export default function DashboardPage() {
             </Stack>
           </Container>
         </Box>
-
-        <Footer />
+        <Box as="footer" py={6} bg={THEME.COLORS.background}>
+          <Container maxW="container.xl">
+            <Text textAlign="center" color="gray.400" fontSize="sm">
+              © 2025 Ekadi Platform. All rights reserved.
+            </Text>
+          </Container>
+        </Box>
       </>
     </ProtectedRoute>
   );

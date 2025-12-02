@@ -1,4 +1,4 @@
-'use client';
+ 'use client';
 
 import {
   Box,
@@ -33,14 +33,18 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useState, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/src/contexts/AuthContext';
 import useCustomToast from '@/src/hooks/useToast';
-import PublicNav from '@/src/components/layout/PublicNav';
 import { ROUTES, COUNTRY_CODES, USER_TYPES, THEME } from '@/src/lib/constants';
 import { RegisterData } from '@/src/types';
 import { IconType } from 'react-icons';
+
+const PublicNav = dynamic(() => import('@/src/components/layout/PublicNav'), {
+  ssr: false,
+});
 
 // ============================================================================
 // VALIDATION SCHEMA
@@ -63,10 +67,10 @@ const registerSchema = z
       phone_number: z
         .string()
         .min(1, 'Phone number is required')
-        .regex(/^[0-9]{9,10}$/, 'Phone number must be 9-10 digits'),
-      user_type: z.enum(['individual', 'business'], {
-        required_error: 'Please select an account type',
-      }),
+        .regex(/^[0-9 ]+$/, 'Phone number must contain digits (and spaces) only')
+        .min(4, 'Phone number must be at least 4 digits')
+        .max(20, 'Phone number must be at most 20 characters'),
+      user_type: z.enum(['individual', 'business'] as const),
       company_name: z.string().optional(),
     }),
   })
@@ -135,22 +139,6 @@ const FormInput = ({
         color={THEME.COLORS.textPrimary}
         fontSize="md"
         className="registration-input"
-        sx={{
-          backgroundColor: `${THEME.COLORS.background} !important`,
-          background: `${THEME.COLORS.background} !important`,
-          '&::placeholder': {
-            color: '#718096 !important',
-            opacity: '1 !important',
-          },
-          '&:hover': {
-            backgroundColor: `${THEME.COLORS.background} !important`,
-            background: `${THEME.COLORS.background} !important`,
-          },
-          '&:focus': {
-            backgroundColor: `${THEME.COLORS.background} !important`,
-            background: `${THEME.COLORS.background} !important`,
-          },
-        }}
         _placeholder={{
           color: "gray.500",
           opacity: 1,
@@ -201,6 +189,23 @@ const FormInput = ({
     )}
   </Field.Root>
 );
+
+// Basic password strength helper for UX feedback
+const getPasswordStrength = (password: string | undefined) => {
+  if (!password) return { label: 'Too short', color: 'gray.500' };
+
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (password.length >= 12) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[a-z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  if (score <= 2) return { label: 'Weak', color: THEME.COLORS.error };
+  if (score <= 4) return { label: 'Medium', color: THEME.COLORS.warning };
+  return { label: 'Strong', color: THEME.COLORS.success };
+};
 
 // Stepper Component
 const Stepper = ({ currentStep, steps }: { currentStep: number, steps: string[] }) => {
@@ -278,12 +283,13 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastSubmitTime, setLastSubmitTime] = useState<number | null>(null);
 
   const { register: registerUser } = useAuth();
   const router = useRouter();
   const toast = useCustomToast();
 
-  const STEPS = ['Personal', 'Contact', 'Type', 'Security'];
+  const STEPS = ['Personal & Contact', 'Account Setup'];
 
   const {
     register,
@@ -310,20 +316,22 @@ export default function RegisterPage() {
     let fieldsToValidate: any[] = [];
 
     switch (step) {
-      case 1: // Personal Info
-        fieldsToValidate = ['first_name', 'last_name'];
+      case 1: // Personal & Contact Info
+        fieldsToValidate = [
+          'first_name',
+          'last_name',
+          'email',
+          'profile.phone_number',
+          'profile.country_code',
+        ];
         break;
-      case 2: // Contact Info (Email + Phone)
-        fieldsToValidate = ['email', 'profile.phone_number', 'profile.country_code'];
-        break;
-      case 3: // Account Type
-        fieldsToValidate = ['profile.user_type'];
+      case 2: // Account Setup
+        fieldsToValidate = ['profile.user_type', 'password', 'password2'];
         if (watchUserType === 'business') {
           fieldsToValidate.push('profile.company_name');
         }
         break;
-      case 4: // Security
-        // handled by form submit
+      default:
         return;
     }
 
@@ -340,9 +348,19 @@ export default function RegisterPage() {
   };
 
   const onSubmit = async (data: RegisterFormData) => {
+    const now = Date.now();
+    if (lastSubmitTime && now - lastSubmitTime < 5000) {
+      toast.error(
+        'Please wait a moment',
+        'You are submitting too quickly. Please wait a few seconds before trying again.'
+      );
+      return;
+    }
+
+    setLastSubmitTime(now);
     setIsSubmitting(true);
     try {
-      let phoneNumber = data.profile.phone_number.trim();
+      let phoneNumber = data.profile.phone_number.replace(/\s+/g, '').trim();
       if (phoneNumber.startsWith('0')) {
         phoneNumber = phoneNumber.substring(1);
       }
@@ -411,7 +429,7 @@ export default function RegisterPage() {
             w="100%"
           >
             {/* Header */}
-            <Stack spacing={2} mb={8} textAlign="center">
+            <Stack gap={2} mb={8} textAlign="center">
               <Heading fontSize="2xl" color={THEME.COLORS.primary}>
                 Create Account
               </Heading>
@@ -425,11 +443,11 @@ export default function RegisterPage() {
 
             {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)}>
-              <Stack spacing={6} w="100%">
+              <Stack gap={6} w="100%">
                 
-                {/* STEP 1: PERSONAL INFORMATION */}
+                {/* STEP 1: PERSONAL & CONTACT INFORMATION */}
                 {step === 1 && (
-                  <Stack spacing={5} w="100%">
+                  <Stack gap={5} w="100%">
                     <FormInput
                       icon={FiUser}
                       label="First Name"
@@ -448,12 +466,7 @@ export default function RegisterPage() {
                       register={register}
                       name="last_name"
                     />
-                  </Stack>
-                )}
-
-                {/* STEP 2: CONTACT INFORMATION (Email & Phone) */}
-                {step === 2 && (
-                  <Stack spacing={5} w="100%">
+                    {/* EMAIL */}
                     <FormInput
                       icon={FiMail}
                       label="Email Address"
@@ -466,7 +479,7 @@ export default function RegisterPage() {
                     />
 
                     <Box>
-                      <Stack direction={{ base: 'column', sm: 'row' }} spacing={4}>
+                      <Stack direction={{ base: 'column', sm: 'row' }} gap={4}>
                         <Field.Root invalid={!!errors.profile?.country_code} w={{ base: '100%', sm: '160px' }}>
                           <Field.Label fontWeight="semibold" color="gray.700" mb={3} fontSize="sm">
                             Country Code
@@ -486,18 +499,6 @@ export default function RegisterPage() {
                               color={THEME.COLORS.textPrimary}
                               fontSize="md"
                               className="registration-input"
-                              sx={{
-                                backgroundColor: `${THEME.COLORS.background} !important`,
-                                background: `${THEME.COLORS.background} !important`,
-                                '&:hover': {
-                                  backgroundColor: `${THEME.COLORS.background} !important`,
-                                  background: `${THEME.COLORS.background} !important`,
-                                },
-                                '&:focus': {
-                                  backgroundColor: `${THEME.COLORS.background} !important`,
-                                  background: `${THEME.COLORS.background} !important`,
-                                },
-                              }}
                               _focus={{
                                 borderColor: THEME.COLORS.primary,
                                 bg: `${THEME.COLORS.background} !important`,
@@ -520,11 +521,25 @@ export default function RegisterPage() {
                           <FormInput
                             icon={FiPhone}
                             label="Phone Number"
-                            placeholder="e.g., 712345678"
+                            placeholder="e.g., 712 345 678"
                             type="tel"
                             error={errors.profile?.phone_number?.message}
                             isValid={!!watchAllFields.profile?.phone_number}
-                            register={register}
+                            register={(_fieldName: string) =>
+                              register('profile.phone_number', {
+                                onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                                  const raw = e.target.value.replace(/\D/g, '');
+                                  // Simple grouping: 3-3-rest
+                                  let formatted = raw;
+                                  if (raw.length > 3 && raw.length <= 6) {
+                                    formatted = `${raw.slice(0, 3)} ${raw.slice(3)}`;
+                                  } else if (raw.length > 6) {
+                                    formatted = `${raw.slice(0, 3)} ${raw.slice(3, 6)} ${raw.slice(6)}`;
+                                  }
+                                  e.target.value = formatted;
+                                },
+                              })
+                            }
                             name="profile.phone_number"
                           />
                         </Box>
@@ -533,14 +548,14 @@ export default function RegisterPage() {
                   </Stack>
                 )}
 
-                {/* STEP 3: ACCOUNT TYPE */}
-                {step === 3 && (
-                  <Stack spacing={5} w="100%">
+                {/* STEP 2: ACCOUNT SETUP (TYPE + PASSWORD) */}
+                {step === 2 && (
+                  <Stack gap={5} w="100%">
                     <Field.Root invalid={!!errors.profile?.user_type}>
                       <Field.Label fontWeight="semibold" color="gray.700" mb={2}>
                         Select Account Type
                       </Field.Label>
-                      <Stack direction={{ base: 'column', sm: 'row' }} spacing={3}>
+                      <Stack direction={{ base: 'column', sm: 'row' }} gap={3}>
                         {USER_TYPES.map((type) => (
                           <Box
                             key={type.value}
@@ -614,12 +629,7 @@ export default function RegisterPage() {
                         />
                       </Box>
                     )}
-                  </Stack>
-                )}
 
-                {/* STEP 4: ACCOUNT DETAILS (PASSWORD) */}
-                {step === 4 && (
-                  <Stack spacing={5} w="100%">
                     <FormInput
                       icon={FiLock}
                       label="Create Password"
@@ -646,6 +656,10 @@ export default function RegisterPage() {
                         </IconButton>
                       }
                     />
+                    {/* Password strength indicator */}
+                    <Text fontSize="sm" color={getPasswordStrength(watchAllFields.password).color}>
+                      Password strength: {getPasswordStrength(watchAllFields.password).label}
+                    </Text>
 
                     <FormInput
                       icon={FiLock}
@@ -693,7 +707,7 @@ export default function RegisterPage() {
                     </Button>
                   )}
                   
-                  {step < 4 ? (
+                  {step < STEPS.length ? (
                     <Button
                       onClick={handleNextStep}
                       {...THEME.BUTTON_STYLES.primaryButton}

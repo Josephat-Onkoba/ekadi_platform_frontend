@@ -12,6 +12,8 @@
 import { ReactNode, Suspense, useEffect } from 'react';
 import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import { ChakraProvider } from '@chakra-ui/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { system } from '@/src/lib/theme';
 import { AuthProvider } from '@/src/contexts/AuthContext';
 import ToastContainer from '@/src/components/common/ToastContainer';
@@ -212,7 +214,7 @@ function LoadingFallback() {
 /**
  * Handles errors caught by ErrorBoundary
  */
-function handleError(error: Error, info: { componentStack: string }) {
+function handleError(error: Error, info: any) {
   // Log to error reporting service in production
   console.error('Provider Error:', error);
   console.error('Component Stack:', info.componentStack);
@@ -241,6 +243,8 @@ function handleError(error: Error, info: { componentStack: string }) {
  * @returns Nested providers wrapping children
  */
 
+const queryClient = new QueryClient();
+
 export default function Providers({ children }: ProvidersProps) {
   return (
     <ErrorBoundary
@@ -253,10 +257,14 @@ export default function Providers({ children }: ProvidersProps) {
     >
       <Suspense fallback={<LoadingFallback />}>
         <ChakraProvider value={system}>
-          <AuthProvider>
-            {children}
-            <ToastContainer />
-          </AuthProvider>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              {children}
+              <ToastContainer />
+            </AuthProvider>
+            {/* React Query Devtools disabled */}
+            {/* {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />} */}
+          </QueryClientProvider>
         </ChakraProvider>
       </Suspense>
     </ErrorBoundary>

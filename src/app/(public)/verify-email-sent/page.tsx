@@ -24,12 +24,16 @@ import {
 } from '@chakra-ui/react';
 import { FiMail, FiRefreshCw } from 'react-icons/fi';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { resendVerification } from '@/src/lib/auth';
 import useCustomToast from '@/src/hooks/useToast';
-import PublicNav from '@/src/components/layout/PublicNav';
 import { ROUTES, THEME } from '@/src/lib/constants';
+
+const PublicNav = dynamic(() => import('@/src/components/layout/PublicNav'), {
+  ssr: false,
+});
 
 // ============================================================================
 // MAIN COMPONENT
@@ -83,7 +87,7 @@ export default function EmailVerificationSentPage() {
             p={8}
             textAlign="center"
           >
-            <Stack spacing={6} align="center">
+            <Stack gap={6} align="center">
               {/* SUCCESS ICON */}
               <Box
                 bg={THEME.COLORS.background}
@@ -108,7 +112,7 @@ export default function EmailVerificationSentPage() {
               </Heading>
 
               {/* MESSAGE */}
-              <Stack spacing={3}>
+              <Stack gap={3}>
                 <Text color="gray.600" fontSize="lg">
                   Email verification link sent
                 </Text>
@@ -133,18 +137,23 @@ export default function EmailVerificationSentPage() {
               </Box>
 
               {/* RESEND SECTION */}
-              <Stack spacing={3} w="full">
+              <Stack gap={3} w="full">
                 <Text color="gray.600" fontSize="sm">
                   Didn't receive the email?
                 </Text>
 
-                <Button />}
+                <Button
                   onClick={handleResend}
-                  disabled={isResending} {...THEME.BUTTON_STYLES.secondaryButton}
+                  disabled={isResending}
+                  {...THEME.BUTTON_STYLES.secondaryButton}
                   variant="outline"
                   w="full"
                   size="lg"
+                  display="inline-flex"
+                  alignItems="center"
+                  gap={2}
                 >
+                  <FiRefreshCw />
                   Resend Verification Email
                 </Button>
               </Stack>

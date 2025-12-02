@@ -15,7 +15,7 @@
 
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { API_CONFIG, API_ENDPOINTS, STORAGE_KEYS, ROUTES } from './constants';
-import { ApiResponse, ApiError } from '@/types';
+import { ApiResponse, ApiError } from '@/src/types';
 
 // ============================================================================
 // TOKEN REFRESH STATE
@@ -54,55 +54,43 @@ const processQueue = (error: Error | null, token: string | null = null) => {
 // ============================================================================
 
 /**
- * Clear all authentication tokens and user data from localStorage
- * Used on logout or when token refresh fails
+ * Clear cached user data from storage.
+ * 
+ * NOTE:
+ * - We are no longer storing JWTs in localStorage for security reasons.
+ * - Authentication is now handled via secure httpOnly cookies managed
+ *   entirely by the backend.
  */
 export const clearAuthTokens = (): void => {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+    // Keep this function for backwards compatibility, but only clear
+    // non-sensitive cached data.
     localStorage.removeItem(STORAGE_KEYS.USER_DATA);
   }
 };
 
 /**
- * Refresh the access token using the refresh token
+ * Refresh the authentication session using httpOnly cookies.
  * 
- * @returns Promise resolving to new access token
- * @throws Error if refresh token is missing or refresh fails
+ * We no longer read or write JWTs on the client. Instead, the backend
+ * is responsible for setting and rotating secure httpOnly cookies.
+ *
+ * @returns Promise that resolves when the refresh attempt completes
+ * @throws Error if refresh fails
  */
-const refreshAccessToken = async (): Promise<string> => {
+const refreshAccessToken = async (): Promise<void> => {
   try {
-    // Get refresh token from localStorage
-    const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
-
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
-    }
-
-    // Request new access token
-    const response = await axios.post(
+    await axios.post(
       `${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH.REFRESH}`,
-      { refresh: refreshToken },
+      {},
       {
         headers: API_CONFIG.HEADERS,
+        // Ensure cookies are sent with the refresh request
+        withCredentials: true,
       }
     );
-
-    // Extract new tokens from response
-    const { access, refresh } = response.data;
-
-    // Save new tokens to localStorage
-    if (access) {
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, access);
-    }
-    if (refresh) {
-      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refresh);
-    }
-
-    return access;
   } catch (error) {
-    // Clear all tokens on refresh failure
+    // Clear cached data on refresh failure
     clearAuthTokens();
 
     // Redirect to login page
@@ -127,7 +115,7 @@ const formatApiError = (error: AxiosError): ApiError => {
       error: 'Network Error',
       detail: 'Unable to connect to the server. Please check your internet connection.',
       status: 0,
-    };
+    } as ApiError;
   }
 
   // Timeout error
@@ -136,18 +124,19 @@ const formatApiError = (error: AxiosError): ApiError => {
       error: 'Request Timeout',
       detail: 'The request took too long to complete. Please try again.',
       status: 408,
-    };
+    } as ApiError;
   }
 
   // Server responded with error
   if (error.response) {
     const { status, data } = error.response;
+    const errorData = data as any;
     return {
-      error: data?.error || data?.message || 'An error occurred',
-      detail: data?.detail || error.message,
+      error: errorData?.error || errorData?.message || 'An error occurred',
+      detail: errorData?.detail || error.message,
       status,
-      ...data, // Include any field-specific errors
-    };
+      ...errorData, // Include any field-specific errors
+    } as ApiError;
   }
 
   // Request was made but no response received
@@ -155,7 +144,7 @@ const formatApiError = (error: AxiosError): ApiError => {
     error: 'No Response',
     detail: 'The server did not respond. Please try again later.',
     status: 503,
-  };
+  } as ApiError;
 };
 
 // ============================================================================
@@ -164,12 +153,17 @@ const formatApiError = (error: AxiosError): ApiError => {
 
 /**
  * Configured axios instance with authentication and error handling
+ *
+ * Security Change:
+ * - `withCredentials` is now `true` so that the browser automatically
+ *   sends secure httpOnly cookies with each request.
+ * - We no longer attach JWTs from localStorage to the Authorization header.
  */
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_CONFIG.BASE_URL,
   timeout: API_CONFIG.TIMEOUT,
   headers: API_CONFIG.HEADERS,
-  withCredentials: false, // Using JWT tokens, not cookies
+  withCredentials: true, // Use secure httpOnly cookies for auth
 });
 
 // ============================================================================
@@ -177,32 +171,17 @@ const apiClient: AxiosInstance = axios.create({
 // ============================================================================
 
 /**
- * Request interceptor to attach JWT token to requests
+ * Request interceptor
+ *
+ * Previously, this interceptor attached JWTs from localStorage to the
+ * Authorization header. Since we now rely on httpOnly cookies managed
+ * by the backend, we simply return the config unchanged.
  */
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    try {
-      // Get access token from localStorage
-      if (typeof window !== 'undefined') {
-        const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-
-        // Attach token to Authorization header if it exists
-        if (token && config.headers) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-      }
-
-      return config;
-    } catch (error) {
-      // Log error in development
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Request interceptor error:', error);
-      }
-      return Promise.reject(error);
-    }
+    return config;
   },
   (error) => {
-    // Log error in development
     if (process.env.NODE_ENV === 'development') {
       console.error('Request interceptor error:', error);
     }
@@ -229,15 +208,13 @@ apiClient.interceptors.response.use(
       _retry?: boolean;
     };
 
-    // Log error in development
+    // Log error in development (without sensitive payload data)
     if (process.env.NODE_ENV === 'development') {
-      console.error('API Error:', error);
+      console.error('API Error:', error.message);
       console.error('API Error Details:', {
         url: originalRequest?.url,
         status: error.response?.status,
         statusText: error.response?.statusText,
-        message: error.message,
-        data: error.response?.data,
       });
     }
 
@@ -254,10 +231,8 @@ apiClient.interceptors.response.use(
           return new Promise((resolve, reject) => {
             failedQueue.push({ resolve, reject });
           })
-            .then((token) => {
-              if (originalRequest.headers) {
-                originalRequest.headers.Authorization = `Bearer ${token}`;
-              }
+            .then(() => {
+              // After refresh completes, retry the original request.
               return apiClient(originalRequest);
             })
             .catch((err) => {
@@ -270,20 +245,16 @@ apiClient.interceptors.response.use(
         isRefreshing = true;
 
         try {
-          // Attempt to refresh the token
-          const newAccessToken = await refreshAccessToken();
+          // Attempt to refresh the session using httpOnly cookies
+          await refreshAccessToken();
 
-          // Process queued requests with new token
-          processQueue(null, newAccessToken);
+          // Process queued requests
+          processQueue(null, null);
 
-          // Retry original request with new token
-          if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-          }
-
+          // Retry original request (cookies now carry refreshed session)
           return apiClient(originalRequest);
         } catch (refreshError) {
-          // Token refresh failed
+          // Session refresh failed
           processQueue(refreshError as Error, null);
           clearAuthTokens();
 
