@@ -148,6 +148,47 @@ textarea:disabled {
 }
 
 /* ===================================
+   Autofill Styling Fix
+   =================================== */
+/* Override browser autofill styles to maintain consistent appearance */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #F9F9F9 inset !important;
+  -webkit-text-fill-color: #2D3748 !important;
+  box-shadow: 0 0 0 1000px #F9F9F9 inset !important;
+  background-color: #F9F9F9 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Firefox autofill fix */
+input:autofill,
+select:autofill,
+textarea:autofill {
+  background-color: #F9F9F9 !important;
+  color: #2D3748 !important;
+}
+
+/* Registration form specific autofill fixes */
+.registration-input:-webkit-autofill,
+.registration-input:-webkit-autofill:hover,
+.registration-input:-webkit-autofill:focus,
+.registration-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #F9F9F9 inset !important;
+  -webkit-text-fill-color: #2D3748 !important;
+  box-shadow: 0 0 0 1000px #F9F9F9 inset !important;
+  background-color: #F9F9F9 !important;
+  caret-color: #2D3748 !important;
+}
+
+/* ===================================
    Button Base Styles
    =================================== */
 button {

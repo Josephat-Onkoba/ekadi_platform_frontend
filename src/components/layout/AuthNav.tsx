@@ -44,6 +44,8 @@ import {
   FiMenu,
   FiChevronDown,
   FiX,
+  FiCalendar,
+  FiCreditCard,
 } from 'react-icons/fi';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
@@ -269,9 +271,16 @@ export default function AuthNav() {
       icon: FiHome,
       label: 'Dashboard',
     },
-    // Add more nav items here for future features
-    // { href: '/events', icon: FiCalendar, label: 'Events' },
-    // { href: '/cards', icon: FiCreditCard, label: 'Cards' },
+    {
+      href: '/events',
+      icon: FiCalendar,
+      label: 'Events',
+    },
+    {
+      href: '/cards',
+      icon: FiCreditCard,
+      label: 'Cards',
+    },
   ];
 
   return (

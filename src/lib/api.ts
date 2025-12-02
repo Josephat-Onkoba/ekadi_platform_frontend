@@ -103,6 +103,87 @@ const refreshAccessToken = async (): Promise<void> => {
 };
 
 /**
+ * Extract human-readable error message from Django REST Framework error response
+ * 
+ * DRF returns errors in various formats:
+ * - Field errors: { "email": ["This email already exists."] }
+ * - Non-field errors: { "non_field_errors": ["Error message"] }
+ * - Detail: { "detail": "Error message" }
+ * - Generic: { "error": "Error message", "message": "Error message" }
+ * 
+ * @param errorData - Error response data from DRF
+ * @returns Human-readable error message
+ */
+const extractErrorMessage = (errorData: any): string => {
+  if (!errorData || typeof errorData !== 'object') {
+    return 'An error occurred';
+  }
+
+  // Check for explicit error/message/detail fields
+  if (errorData.detail) {
+    return errorData.detail;
+  }
+  if (errorData.error) {
+    return errorData.error;
+  }
+  if (errorData.message) {
+    return errorData.message;
+  }
+
+  // Check for non-field errors (DRF validation)
+  if (errorData.non_field_errors) {
+    const errors = errorData.non_field_errors;
+    return Array.isArray(errors) ? errors.join(' ') : errors;
+  }
+
+  // Extract field-level validation errors
+  const fieldErrors: string[] = [];
+  for (const [field, errors] of Object.entries(errorData)) {
+    if (Array.isArray(errors)) {
+      // Format field name to be more readable
+      const fieldName = field
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, (l) => l.toUpperCase());
+      errors.forEach((err: any) => {
+        if (typeof err === 'string') {
+          fieldErrors.push(`${fieldName}: ${err}`);
+        } else if (typeof err === 'object') {
+          // Handle nested errors (e.g., profile.phone_number)
+          for (const [nestedField, nestedErrors] of Object.entries(err)) {
+            const nestedFieldName = nestedField
+              .replace(/_/g, ' ')
+              .replace(/\b\w/g, (l) => l.toUpperCase());
+            if (Array.isArray(nestedErrors)) {
+              nestedErrors.forEach((nestedErr: string) => {
+                fieldErrors.push(`${nestedFieldName}: ${nestedErr}`);
+              });
+            }
+          }
+        }
+      });
+    } else if (typeof errors === 'object' && errors !== null) {
+      // Handle nested object errors (e.g., profile: { phone_number: [...] })
+      for (const [nestedField, nestedErrors] of Object.entries(errors)) {
+        const nestedFieldName = nestedField
+          .replace(/_/g, ' ')
+          .replace(/\b\w/g, (l) => l.toUpperCase());
+        if (Array.isArray(nestedErrors)) {
+          nestedErrors.forEach((nestedErr: string) => {
+            fieldErrors.push(`${nestedFieldName}: ${nestedErr}`);
+          });
+        }
+      }
+    }
+  }
+
+  if (fieldErrors.length > 0) {
+    return fieldErrors.join('\n');
+  }
+
+  return 'An error occurred';
+};
+
+/**
  * Format axios error into standardized ApiError format
  * 
  * @param error - Axios error object
@@ -114,6 +195,7 @@ const formatApiError = (error: AxiosError): ApiError => {
     return {
       error: 'Network Error',
       detail: 'Unable to connect to the server. Please check your internet connection.',
+      message: 'Unable to connect to the server. Please check your internet connection.',
       status: 0,
     } as ApiError;
   }
@@ -123,6 +205,7 @@ const formatApiError = (error: AxiosError): ApiError => {
     return {
       error: 'Request Timeout',
       detail: 'The request took too long to complete. Please try again.',
+      message: 'The request took too long to complete. Please try again.',
       status: 408,
     } as ApiError;
   }
@@ -131,11 +214,14 @@ const formatApiError = (error: AxiosError): ApiError => {
   if (error.response) {
     const { status, data } = error.response;
     const errorData = data as any;
+    const errorMessage = extractErrorMessage(errorData);
+    
     return {
-      error: errorData?.error || errorData?.message || 'An error occurred',
-      detail: errorData?.detail || error.message,
+      error: errorData?.error || 'Validation Error',
+      detail: errorData?.detail || errorMessage,
+      message: errorMessage,
       status,
-      ...errorData, // Include any field-specific errors
+      fieldErrors: errorData, // Include raw field errors for form handling
     } as ApiError;
   }
 
@@ -143,6 +229,7 @@ const formatApiError = (error: AxiosError): ApiError => {
   return {
     error: 'No Response',
     detail: 'The server did not respond. Please try again later.',
+    message: 'The server did not respond. Please try again later.',
     status: 503,
   } as ApiError;
 };
@@ -208,13 +295,14 @@ apiClient.interceptors.response.use(
       _retry?: boolean;
     };
 
-    // Log error in development (without sensitive payload data)
+    // Log error in development with full response data
     if (process.env.NODE_ENV === 'development') {
       console.error('API Error:', error.message);
       console.error('API Error Details:', {
         url: originalRequest?.url,
         status: error.response?.status,
         statusText: error.response?.statusText,
+        data: error.response?.data,
       });
     }
 

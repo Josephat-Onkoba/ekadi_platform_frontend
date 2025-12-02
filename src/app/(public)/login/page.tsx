@@ -25,19 +25,17 @@ import {
   Button,
   Link as ChakraLink,
   Separator,
+  Flex,
+  Icon,
 } from '@chakra-ui/react';
-import { FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiEye, FiEyeOff, FiAlertCircle } from 'react-icons/fi';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/src/contexts/AuthContext';
 import useCustomToast from '@/src/hooks/useToast';
-const PublicNav = dynamic(() => import('@/src/components/layout/PublicNav'), {
-  ssr: false,
-});
 import { ROUTES, THEME } from '@/src/lib/constants';
 import { LoginCredentials } from '@/src/types';
 
@@ -69,7 +67,7 @@ export default function LoginPage() {
     register,
     handleSubmit,
     setValue,
-    formState: { errors },
+    formState: { errors, touchedFields },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     mode: 'onChange',
@@ -111,8 +109,18 @@ export default function LoginPage() {
     } catch (error: any) {
       console.error('Login error:', error);
       
-      // Parse error message
-      const errorMessage = error?.message || 'Unable to log in. Please check your credentials.';
+      // Extract error message from various possible formats
+      let errorMessage = 'Unable to log in. Please check your credentials.';
+      
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.detail) {
+        errorMessage = error.detail;
+      } else if (error?.error) {
+        errorMessage = error.error;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
       
       // Check if email is not verified
       if (errorMessage.toLowerCase().includes('email not verified') || 
@@ -129,173 +137,227 @@ export default function LoginPage() {
     }
   };
 
+  // Password toggle button component
+  const PasswordToggleButton = () => (
+    <Button
+      type="button"
+      aria-label="Toggle password visibility"
+      onClick={() => setShowPassword(!showPassword)}
+      variant="ghost"
+      size="sm"
+      p={2}
+      minW="36px"
+      h="36px"
+      color="gray.500"
+      _hover={{
+        bg: 'gray.100',
+        color: THEME.COLORS.primary,
+      }}
+      borderRadius="md"
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+    >
+      <Icon as={showPassword ? FiEyeOff : FiEye} boxSize={5} />
+    </Button>
+  );
+
   return (
-    <>
-      <PublicNav />
-
-      <Box 
-        minH="calc(100vh - 70px)" 
-        bg={THEME.COLORS.background}
-        py={12}
-      >
-        <Container maxW="md">
-          <Box
-            bg="white"
-            borderRadius="xl"
-            boxShadow="md"
-            p={8}
-            _hover={{ boxShadow: 'lg' }}
-            transition="all 0.2s"
-          >
-            {/* HEADER */}
-            <Stack gap={4} mb={8} textAlign="center">
-              <Heading 
+    <Box 
+      minH="100vh" 
+      bg={THEME.COLORS.background}
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      py={4}
+      px={4}
+    >
+      <Container maxW="440px">
+        <Box
+          bg="white"
+          borderRadius="xl"
+          boxShadow="lg"
+          p={{ base: 6, sm: 8 }}
+        >
+          {/* HEADER */}
+          <Stack gap={2} mb={8} textAlign="center">
+            <Link href="/">
+              <Text 
                 fontSize="2xl" 
+                fontWeight="bold" 
                 color={THEME.COLORS.primary}
-                fontWeight="bold"
+                mb={2}
+                cursor="pointer"
+                _hover={{ opacity: 0.8 }}
               >
-                Welcome Back
-              </Heading>
-              <Text color="gray.600">
-                Login to manage your events
+                Ekadi
               </Text>
-            </Stack>
+            </Link>
+            <Heading 
+              fontSize="xl" 
+              color="gray.800"
+              fontWeight="bold"
+            >
+              Welcome Back
+            </Heading>
+            <Text color="gray.500" fontSize="sm">
+              Login to manage your events
+            </Text>
+          </Stack>
 
-            {/* FORM */}
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <Stack gap={5}>
-                {/* EMAIL */}
-                <Field.Root invalid={!!errors.email} w="100%">
-                  <Field.Label fontWeight="semibold" color="gray.700" mb={3}>
-                    Email
-                  </Field.Label>
+          {/* FORM */}
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Stack gap={5}>
+              {/* EMAIL */}
+              <Field.Root invalid={!!(touchedFields.email && errors.email)} w="100%">
+                <Field.Label fontWeight="semibold" color="gray.700" mb={2} fontSize="sm">
+                  Email
+                </Field.Label>
+                <Input
+                  type="email"
+                  placeholder="your@email.com"
+                  borderRadius="lg"
+                  h="48px"
+                  pl="1rem"
+                  pr="1rem"
+                  bg={THEME.COLORS.background}
+                  border="2px solid"
+                  borderColor={touchedFields.email && errors.email ? THEME.COLORS.error : "gray.200"}
+                  className="registration-input"
+                  _placeholder={{
+                    color: "gray.500",
+                    opacity: 1,
+                  }}
+                  _focus={{
+                    borderColor: THEME.COLORS.primary,
+                    bg: THEME.COLORS.background,
+                    boxShadow: `0 0 0 3px ${THEME.COLORS.primary}20`,
+                  }}
+                  _hover={{
+                    borderColor: touchedFields.email && errors.email ? THEME.COLORS.error : THEME.COLORS.primary,
+                  }}
+                  {...register('email')}
+                />
+                {touchedFields.email && errors.email && (
+                  <Flex align="center" gap={1.5} mt={1.5}>
+                    <Icon as={FiAlertCircle} color={THEME.COLORS.error} boxSize={3.5} />
+                    <Field.ErrorText color={THEME.COLORS.error} fontSize="xs" fontWeight="medium">
+                      {errors.email?.message}
+                    </Field.ErrorText>
+                  </Flex>
+                )}
+              </Field.Root>
+
+              {/* PASSWORD */}
+              <Field.Root invalid={!!(touchedFields.password && errors.password)} w="100%">
+                <Field.Label fontWeight="semibold" color="gray.700" mb={2} fontSize="sm">
+                  Password
+                </Field.Label>
+                <Box position="relative" w="100%">
                   <Input
-                    type="email"
-                    placeholder="your@email.com"
-                    borderRadius="md"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Enter your password"
+                    borderRadius="lg"
                     h="48px"
-                    pl="1.25rem"
-                    pr="1.25rem"
+                    pl="1rem"
+                    pr="3rem"
                     bg={THEME.COLORS.background}
                     border="2px solid"
-                    borderColor={errors.email ? THEME.COLORS.error : "gray.200"}
+                    borderColor={touchedFields.password && errors.password ? THEME.COLORS.error : "gray.200"}
                     className="registration-input"
                     _placeholder={{
                       color: "gray.500",
                       opacity: 1,
                     }}
-                    {...register('email')}
+                    _focus={{
+                      borderColor: THEME.COLORS.primary,
+                      bg: THEME.COLORS.background,
+                      boxShadow: `0 0 0 3px ${THEME.COLORS.primary}20`,
+                    }}
+                    _hover={{
+                      borderColor: touchedFields.password && errors.password ? THEME.COLORS.error : THEME.COLORS.primary,
+                    }}
+                    {...register('password')}
                   />
-                  <Field.ErrorText>
-                    {errors.email?.message}
-                  </Field.ErrorText>
-                </Field.Root>
-
-                {/* PASSWORD */}
-                <Field.Root invalid={!!errors.password} w="100%">
-                  <Field.Label fontWeight="semibold" color="gray.700" mb={3}>
-                    Password
-                  </Field.Label>
-                  <Box position="relative" w="100%">
-                    <Input
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="••••••••"
-                      borderRadius="md"
-                      h="48px"
-                      pl="1.25rem"
-                      pr="3.5rem"
-                      bg={THEME.COLORS.background}
-                      border="2px solid"
-                      borderColor={errors.password ? THEME.COLORS.error : "gray.200"}
-                      className="registration-input"
-                      _placeholder={{
-                        color: "gray.500",
-                        opacity: 1,
-                      }}
-                      {...register('password')}
-                    />
-                    <Box position="absolute" right="0.5rem" top="50%" transform="translateY(-50%)" zIndex={2}>
-                      <Button
-                        aria-label="Toggle password visibility"
-                        onClick={() => setShowPassword(!showPassword)}
-                        variant="ghost"
-                        size="sm"
-                        color={THEME.COLORS.primary}
-                        _hover={{
-                          bg: THEME.COLORS.background,
-                          color: THEME.COLORS.primary,
-                        }}
-                        borderRadius="md"
-                        minW="auto"
-                        p={0}
-                      >
-                        {showPassword ? <FiEyeOff /> : <FiEye />}
-                      </Button>
-                    </Box>
+                  <Box position="absolute" right="0.5rem" top="50%" transform="translateY(-50%)" zIndex={2}>
+                    <PasswordToggleButton />
                   </Box>
-                  <Field.ErrorText>
-                    {errors.password?.message}
-                  </Field.ErrorText>
-                </Field.Root>
-
-                {/* REMEMBER ME + FORGOT PASSWORD */}
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <input
-                      id="rememberMe"
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                    />
-                    <label htmlFor="rememberMe">
-                      <Text fontSize="sm" color="gray.600">
-                        Remember me
-                      </Text>
-                    </label>
-                  </Box>
-                  <ChakraLink
-                    as={Link}
-                    href={ROUTES.PUBLIC.FORGOT_PASSWORD}
-                    fontSize="sm"
-                    color={THEME.COLORS.primary}
-                    _hover={{ textDecoration: 'underline' }}
-                  >
-                    Forgot password?
-                  </ChakraLink>
                 </Box>
+                {touchedFields.password && errors.password && (
+                  <Flex align="center" gap={1.5} mt={1.5}>
+                    <Icon as={FiAlertCircle} color={THEME.COLORS.error} boxSize={3.5} />
+                    <Field.ErrorText color={THEME.COLORS.error} fontSize="xs" fontWeight="medium">
+                      {errors.password?.message}
+                    </Field.ErrorText>
+                  </Flex>
+                )}
+              </Field.Root>
 
-                {/* SUBMIT BUTTON */}
-                <Button
-                  type="submit"
-                  size="lg"
-                  w="full"
-                  disabled={isSubmitting} {...THEME.BUTTON_STYLES.primaryButton}
+              {/* REMEMBER ME + FORGOT PASSWORD */}
+              <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Flex alignItems="center" gap={2}>
+                  <Box
+                    as="input"
+                    id="rememberMe"
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRememberMe(e.target.checked)}
+                    w="16px"
+                    h="16px"
+                    borderRadius="sm"
+                    cursor="pointer"
+                    accentColor={THEME.COLORS.primary}
+                  />
+                  <Box as="label" htmlFor="rememberMe" cursor="pointer">
+                    <Text fontSize="sm" color="gray.600">
+                      Remember me
+                    </Text>
+                  </Box>
+                </Flex>
+                <ChakraLink
+                  as={Link}
+                  href={ROUTES.PUBLIC.FORGOT_PASSWORD}
+                  fontSize="sm"
+                  color={THEME.COLORS.primary}
+                  fontWeight="medium"
+                  _hover={{ textDecoration: 'underline' }}
                 >
-                  Login
-                </Button>
-              </Stack>
-            </form>
+                  Forgot password?
+                </ChakraLink>
+              </Box>
 
-            {/* DIVIDER */}
-            <Separator my={6} />
-
-            {/* FOOTER */}
-            <Text textAlign="center" fontSize="sm" color="gray.600">
-              Don't have an account?{' '}
-              <ChakraLink
-                as={Link}
-                href={ROUTES.PUBLIC.REGISTER}
-                color={THEME.COLORS.primary}
-                fontWeight="semibold"
-                _hover={{ textDecoration: 'underline' }}
+              {/* SUBMIT BUTTON */}
+              <Button
+                type="submit"
+                size="lg"
+                h="48px"
+                w="full"
+                disabled={isSubmitting}
+                {...THEME.BUTTON_STYLES.primaryButton}
               >
-                Sign up
-              </ChakraLink>
-            </Text>
-          </Box>
-        </Container>
-      </Box>
-    </>
+                {isSubmitting ? 'Logging in...' : 'Login'}
+              </Button>
+            </Stack>
+          </form>
+
+          {/* DIVIDER */}
+          <Separator my={6} />
+
+          {/* FOOTER */}
+          <Text textAlign="center" fontSize="sm" color="gray.600">
+            Don't have an account?{' '}
+            <ChakraLink
+              as={Link}
+              href={ROUTES.PUBLIC.REGISTER}
+              color={THEME.COLORS.primary}
+              fontWeight="bold"
+              _hover={{ textDecoration: 'underline' }}
+            >
+              Sign up
+            </ChakraLink>
+          </Text>
+        </Box>
+      </Container>
+    </Box>
   );
 }
-

@@ -40,6 +40,10 @@ export const API_ENDPOINTS = {
     CURRENT_USER: '/auth/user/',
     /** Update user profile endpoint */
     UPDATE_USER: '/auth/user/update/',
+    /** Check email availability endpoint */
+    CHECK_EMAIL: '/auth/check-email/',
+    /** Check phone availability endpoint */
+    CHECK_PHONE: '/auth/check-phone/',
   },
 } as const;
 

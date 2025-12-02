@@ -340,3 +340,65 @@ export const updateUserProfile = async (data: any): Promise<User> => {
   }
 };
 
+// ============================================================================
+// AVAILABILITY CHECK FUNCTIONS
+// ============================================================================
+
+/**
+ * Check if an email address is available for registration
+ * 
+ * @param email - Email address to check
+ * @returns Promise resolving to availability status
+ * 
+ * @example
+ * ```typescript
+ * const result = await checkEmailAvailability('user@example.com');
+ * if (!result.available) {
+ *   console.log(result.message); // "This email is already registered"
+ * }
+ * ```
+ */
+export const checkEmailAvailability = async (
+  email: string
+): Promise<{ available: boolean; message: string }> => {
+  try {
+    const response = await apiClient.post(API_ENDPOINTS.AUTH.CHECK_EMAIL, { email });
+    return response.data;
+  } catch (error: any) {
+    // If there's a validation error, the email format is invalid
+    if (error?.status === 400) {
+      return { available: false, message: error?.message || 'Invalid email format' };
+    }
+    throw error;
+  }
+};
+
+/**
+ * Check if a phone number is available for registration
+ * 
+ * @param phoneNumber - Phone number to check (including country code)
+ * @returns Promise resolving to availability status
+ * 
+ * @example
+ * ```typescript
+ * const result = await checkPhoneAvailability('+254712345678');
+ * if (!result.available) {
+ *   console.log(result.message); // "This phone number is already registered"
+ * }
+ * ```
+ */
+export const checkPhoneAvailability = async (
+  phoneNumber: string
+): Promise<{ available: boolean; message: string }> => {
+  try {
+    const response = await apiClient.post(API_ENDPOINTS.AUTH.CHECK_PHONE, { phone_number: phoneNumber });
+    return response.data;
+  } catch (error: any) {
+    // If there's a validation error, the phone format is invalid
+    if (error?.status === 400) {
+      return { available: false, message: error?.message || 'Invalid phone number format' };
+    }
+    throw error;
+  }
+};
+

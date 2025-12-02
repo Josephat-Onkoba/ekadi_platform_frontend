@@ -138,7 +138,13 @@ export interface ApiError {
   error?: string;
   /** Detailed error information */
   detail?: string;
-  /** Field-specific validation errors */
+  /** Human-readable error message (extracted from field errors) */
+  message?: string;
+  /** HTTP status code */
+  status?: number;
+  /** Raw field-level validation errors from DRF */
+  fieldErrors?: Record<string, any>;
+  /** Field-specific validation errors (allows any additional fields) */
   [key: string]: any;
 }
 
