@@ -45,6 +45,25 @@ export const API_ENDPOINTS = {
     /** Check phone availability endpoint */
     CHECK_PHONE: '/auth/check-phone/',
   },
+  /**
+   * Event management endpoints
+   */
+  EVENTS: {
+    /** List all events or create new event */
+    LIST_CREATE: '/events/',
+    /** Get event details by ID */
+    DETAIL: (id: number) => `/events/${id}/`,
+    /** Update event by ID */
+    UPDATE: (id: number) => `/events/${id}/update/`,
+    /** Delete (soft delete) event by ID */
+    DELETE: (id: number) => `/events/${id}/delete/`,
+    /** Close event by ID */
+    CLOSE: (id: number) => `/events/${id}/close/`,
+    /** Reopen closed event by ID */
+    REOPEN: (id: number) => `/events/${id}/reopen/`,
+    /** Get event statistics */
+    STATS: '/events/stats/',
+  },
 } as const;
 
 // ============================================================================
@@ -109,6 +128,8 @@ export const ROUTES = {
     VERIFY_EMAIL: '/verify-email',
     /** Email sent confirmation page */
     EMAIL_SENT: '/verify-email-sent',
+    /** Pricing page */
+    PRICING: '/pricing',
   },
   /**
    * Protected routes requiring authentication
@@ -122,6 +143,14 @@ export const ROUTES = {
     EDIT_PROFILE: '/profile/edit',
     /** User settings page */
     SETTINGS: '/settings',
+    /** Events list page */
+    EVENTS: '/events',
+    /** Create new event page */
+    EVENT_CREATE: '/events/create',
+    /** Event detail page */
+    EVENT_DETAIL: (id: string | number) => `/events/${id}`,
+    /** Edit event page */
+    EVENT_EDIT: (id: string | number) => `/events/${id}/edit`,
   },
   /**
    * Error pages
@@ -180,7 +209,225 @@ export const VALIDATION = {
 } as const;
 
 // ============================================================================
-// 8. THEME
+// 8. EVENT TYPES
+// ============================================================================
+
+/**
+ * Available event types with display labels, icons, and colors
+ * Used in event creation, filtering, and display components
+ */
+export const EVENT_TYPES = [
+  { value: 'wedding', label: 'Wedding', icon: '💒', color: 'purple' },
+  { value: 'send_off', label: 'Send-off', icon: '👋', color: 'orange' },
+  { value: 'conference', label: 'Conference', icon: '📊', color: 'blue' },
+  { value: 'birthday', label: 'Birthday', icon: '🎂', color: 'pink' },
+  { value: 'corporate', label: 'Corporate Event', icon: '🏢', color: 'teal' },
+  { value: 'other', label: 'Other', icon: '🎉', color: 'gray' },
+] as const;
+
+// ============================================================================
+// 9. EVENT STATUSES
+// ============================================================================
+
+/**
+ * Available event statuses with display labels, colors, and descriptions
+ * Used in event management, filtering, and status indicators
+ */
+export const EVENT_STATUSES = [
+  { value: 'draft', label: 'Draft', color: 'gray', description: 'Event is being prepared' },
+  { value: 'active', label: 'Active', color: 'green', description: 'Event is published' },
+  { value: 'closed', label: 'Closed', color: 'red', description: 'Event has concluded' },
+] as const;
+
+// ============================================================================
+// 10. PRICING
+// ============================================================================
+
+/**
+ * Pricing plans available in the Ekadi Platform
+ * 
+ * Includes pay-as-you-go and subscription options tailored for the Kenyan market.
+ * Used on the pricing page and in billing-related UI.
+ */
+export const PRICING_PLANS = {
+  /**
+   * Pay As You Go plan - ideal for users who create events occasionally
+   * and prefer not to commit to a monthly subscription.
+   */
+  PAY_AS_YOU_GO: {
+    name: 'Pay As You Go',
+    description: 'Perfect for occasional events',
+    type: 'payg' as const,
+    features: [
+      'Pay only for what you use',
+      'No monthly commitments',
+      'All event types supported',
+      'Basic card templates',
+      'Email & SMS invitations',
+      'RSVP tracking',
+      'Event analytics',
+    ],
+    pricing: {
+      event_creation: { amount: 500, currency: 'KES', description: 'per event created' },
+      whatsapp_message: { amount: 2, currency: 'KES', description: 'per WhatsApp message' },
+      sms_message: { amount: 3, currency: 'KES', description: 'per SMS sent' },
+      card_design: { amount: 0, currency: 'KES', description: 'Basic templates free' },
+    },
+    popular: false,
+  },
+
+  /**
+   * Starter subscription - designed for individuals planning
+   * personal events such as weddings, birthdays, and send-offs.
+   */
+  STARTER: {
+    name: 'Starter',
+    description: 'Great for individuals planning personal events',
+    type: 'subscription' as const,
+    price: 2500,
+    currency: 'KES',
+    billingCycle: 'monthly' as const,
+    features: [
+      '5 events per month',
+      '500 WhatsApp messages',
+      '300 SMS messages',
+      'All basic templates',
+      'Email & SMS invitations',
+      'RSVP tracking',
+      'Event analytics',
+      'Priority support',
+    ],
+    limits: {
+      events: 5,
+      whatsapp: 500,
+      sms: 300,
+    },
+    popular: false,
+  },
+
+  /**
+   * Professional subscription - ideal for event planners,
+   * agencies, and SMEs running events regularly.
+   */
+  PROFESSIONAL: {
+    name: 'Professional',
+    description: 'Perfect for event planners and businesses',
+    type: 'subscription' as const,
+    price: 7500,
+    currency: 'KES',
+    billingCycle: 'monthly' as const,
+    features: [
+      '20 events per month',
+      '2,000 WhatsApp messages',
+      '1,500 SMS messages',
+      'All premium templates',
+      'Custom card branding',
+      'Advanced analytics',
+      'Bulk operations',
+      'Priority support',
+      'API access',
+    ],
+    limits: {
+      events: 20,
+      whatsapp: 2000,
+      sms: 1500,
+    },
+    popular: true,
+  },
+
+  /**
+   * Enterprise plan - tailored solutions for large organizations
+   * with high-volume needs and advanced requirements.
+   */
+  ENTERPRISE: {
+    name: 'Enterprise',
+    description: 'For large organizations and agencies',
+    type: 'custom' as const,
+    price: null as number | null,
+    currency: 'KES',
+    billingCycle: 'custom' as const,
+    features: [
+      'Unlimited events',
+      'Unlimited messages',
+      'All premium features',
+      'Custom integrations',
+      'Dedicated account manager',
+      'White-label options',
+      'Advanced security',
+      '24/7 priority support',
+      'Custom SLA',
+    ],
+    limits: null as {
+      events: number;
+      whatsapp: number;
+      sms: number;
+    } | null,
+    popular: false,
+  },
+} as const;
+
+/**
+ * Frequently Asked Questions for the pricing page
+ * 
+ * Helps users understand how billing, plan changes, and limits work.
+ */
+export const PRICING_FAQ = [
+  {
+    question: 'How does Pay As You Go work?',
+    answer:
+      'With Pay As You Go, you only pay for the services you use. Create an event for KES 500, then pay KES 2 per WhatsApp message and KES 3 per SMS. No monthly fees or commitments.',
+  },
+  {
+    question: 'Can I switch plans later?',
+    answer:
+      'Yes! You can upgrade or downgrade your plan at any time. Changes take effect on your next billing cycle. Unused credits from Pay As You Go never expire.',
+  },
+  {
+    question: 'What happens if I exceed my plan limits?',
+    answer:
+      "If you exceed your monthly limits on a subscription plan, you can either upgrade to a higher plan or pay per-use rates for additional messages. We'll notify you before you hit your limits.",
+  },
+  {
+    question: 'Are there any setup fees?',
+    answer:
+      'No setup fees! All plans include everything you need to start creating and managing events immediately.',
+  },
+  {
+    question: 'What payment methods do you accept?',
+    answer:
+      'We accept M-Pesa, credit/debit cards, and mobile money from major Kenyan and Tanzanian providers (Airtel Money, Tigopesa).',
+  },
+  {
+    question: 'Is there a free trial?',
+    answer:
+      'Yes! New users get their first event free (up to 50 invitations) to test the platform. No credit card required.',
+  },
+  {
+    question: 'Can I cancel anytime?',
+    answer:
+      "Absolutely! Cancel your subscription anytime. You'll retain access until the end of your billing period, and there are no cancellation fees.",
+  },
+  {
+    question: 'Do unused messages roll over?',
+    answer:
+      "Subscription plan messages reset monthly and don't roll over. However, Pay As You Go credits never expire and can be used anytime.",
+  },
+] as const;
+
+/**
+ * Supported payment methods
+ * 
+ * Used to display payment options on the pricing and checkout flows.
+ */
+export const PAYMENT_METHODS = [
+  { name: 'M-Pesa', icon: '📱', supported: true },
+  { name: 'Credit/Debit Card', icon: '💳', supported: true },
+  { name: 'Airtel Money', icon: '📱', supported: true },
+  { name: 'Tigopesa', icon: '📱', supported: true },
+] as const;
+
+// ============================================================================
+// 11. THEME
 // ============================================================================
 
 /**

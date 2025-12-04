@@ -116,29 +116,25 @@ const MobileNavLink = ({ href, label, isActive, onClick, sectionId, onScrollToSe
         w="full"
         justifyContent="flex-start"
         variant="ghost"
-        color={isActive ? THEME.COLORS.primary : 'gray.700'}
-        bg={isActive ? THEME.COLORS.background : 'transparent'}
+        color="gray.700"
+        bg="transparent"
         _hover={{ 
           bg: THEME.COLORS.background,
-          color: THEME.COLORS.primary,
+          color: THEME.COLORS.accent,
           transform: 'translateX(4px)',
         }}
-        fontWeight={isActive ? 'semibold' : 'medium'}
+        fontWeight="medium"
         size="lg"
         borderRadius="lg"
         transition="all 0.2s"
         position="relative"
-        _before={isActive ? {
-          content: '""',
-          position: 'absolute',
-          left: 0,
-          top: '50%',
-          transform: 'translateY(-50%)',
-          w: '3px',
-          h: '60%',
-          bg: THEME.COLORS.primary,
-          borderRadius: 'full',
-        } : {}}
+        pl={4}
+        borderLeft="3px solid"
+        borderColor="transparent"
+        _active={{
+          borderColor: THEME.COLORS.primary,
+          color: THEME.COLORS.primary,
+        }}
       >
         {label}
       </Button>
@@ -254,9 +250,11 @@ export default function PublicNav() {
         as="nav"
         bg="white"
         boxShadow={isScrolled ? 'md' : 'sm'}
-        position="sticky"
+        position="fixed"
         top={0}
-        zIndex={100}
+        left={0}
+        right={0}
+        zIndex={999}
         h="70px"
         borderBottom="1px solid"
         borderColor="gray.100"
@@ -280,24 +278,42 @@ export default function PublicNav() {
             </Link>
 
             {/* CENTER - Desktop Navigation */}
-            {navItems.length > 0 && (
-              <Flex 
-                gap={2} 
-                display={{ base: 'none', md: 'flex' }}
-                align="center"
-              >
-                {navItems.map((item) => (
-                  <DesktopNavLink
-                    key={item.href}
-                    href={item.href}
-                    label={item.label}
-                    isActive={isActiveRoute(item.href)}
-                    sectionId={item.sectionId}
-                    onScrollToSection={handleScrollToSection}
-                  />
-                ))}
-              </Flex>
-            )}
+            <Flex
+              gap={6}
+              display={{ base: 'none', md: 'flex' }}
+              align="center"
+              justify="center"
+              ml={8}
+              flex="1"
+            >
+              {navItems.length > 0 && (
+                <Flex gap={2} align="center">
+                  {navItems.map((item) => (
+                    <DesktopNavLink
+                      key={item.href}
+                      href={item.href}
+                      label={item.label}
+                      isActive={isActiveRoute(item.href)}
+                      sectionId={item.sectionId}
+                      onScrollToSection={handleScrollToSection}
+                    />
+                  ))}
+                </Flex>
+              )}
+
+              {/* Desktop Pricing Link */}
+              <Link href={ROUTES.PUBLIC.PRICING}>
+                <Text
+                  color="gray.700"
+                  fontWeight="medium"
+                  fontSize="sm"
+                  _hover={{ color: THEME.COLORS.primary }}
+                  transition="color 0.2s"
+                >
+                  Pricing
+                </Text>
+              </Link>
+            </Flex>
 
             {/* RIGHT - Auth Buttons */}
             <Flex align="center" gap={3}>
@@ -333,32 +349,30 @@ export default function PublicNav() {
                 </Link>
               </HStack>
 
-              {/* Mobile Menu Toggle */}
+              {/* Mobile Menu Button */}
               <Button
                 display={{ base: 'flex', md: 'none' }}
                 onClick={() => setIsOpen(true)}
                 aria-label="Open navigation menu"
-                bg="transparent"
-                border="2px solid"
-                borderColor={THEME.COLORS.primary}
+                bg={THEME.COLORS.primary}
+                color="white"
                 borderRadius="lg"
-                w={12}
-                h={12}
+                w={11}
+                h={11}
+                minW={11}
                 p={0}
-                minW={12}
                 _hover={{ 
-                  bg: THEME.COLORS.background,
+                  bg: THEME.COLORS.primary,
                   transform: 'scale(1.05)',
-                  borderColor: THEME.COLORS.primary,
+                  boxShadow: '0 4px 12px rgba(0, 128, 128, 0.3)',
                 }}
                 _active={{
-                  bg: THEME.COLORS.background,
+                  bg: THEME.COLORS.primary,
                   transform: 'scale(0.95)',
                 }}
                 transition="all 0.2s"
-                zIndex={10}
               >
-                <Icon as={FiMenu} boxSize={7} color={THEME.COLORS.primary} />
+                <Icon as={FiMenu} boxSize={6} />
               </Button>
             </Flex>
           </Flex>
@@ -368,15 +382,16 @@ export default function PublicNav() {
         <ScrollProgress />
       </Box>
 
-      {/* Mobile Menu Drawer */}
-      <DrawerRoot
-        open={isOpen}
-        onOpenChange={(e) => setIsOpen(e.open)}
-        placement="end"
+      {/* Mobile Menu Drawer - Rendered outside nav for proper stacking */}
+      <DrawerRoot 
+        open={isOpen} 
+        onOpenChange={(details) => setIsOpen(details.open)}
+        placement="end" 
         size="sm"
       >
-        <DrawerBackdrop bg="blackAlpha.600" backdropFilter="blur(4px)" />
-        <DrawerContent
+                
+                <DrawerBackdrop bg="blackAlpha.600" backdropFilter="blur(4px)" />
+                <DrawerContent
           bg="white"
           boxShadow="2xl"
           borderLeftRadius="2xl"
@@ -434,55 +449,92 @@ export default function PublicNav() {
               {/* Navigation Links (if any) */}
               {navItems.length > 0 && (
                 <VStack gap={3} align="stretch">
-                  <Text 
-                    fontSize="xs" 
-                    fontWeight="bold" 
-                    color={THEME.COLORS.primary} 
-                    textTransform="uppercase"
-                    letterSpacing="wider"
-                  >
-                    Navigation
-                  </Text>
-                  {navItems.map((item) => (
+                  <Flex align="center" gap={2}>
+                    <Box w={1} h={4} bg={THEME.COLORS.primary} borderRadius="full" />
+                    <Text 
+                      fontSize="xs" 
+                      fontWeight="bold" 
+                      color={THEME.COLORS.primary} 
+                      textTransform="uppercase"
+                      letterSpacing="wider"
+                    >
+                      Navigation
+                    </Text>
+                  </Flex>
+                  {navItems.map((item, index) => (
                     <MobileNavLink
                       key={item.href}
                       href={item.href}
                       label={item.label}
-                      // Treat all section links as "active" when on the home route
                       isActive={pathname === ROUTES.PUBLIC.HOME}
                       onClick={() => setIsOpen(false)}
                       sectionId={item.sectionId}
                       onScrollToSection={handleScrollToSection}
                     />
                   ))}
+
+                  {/* Mobile Pricing Link */}
+                  <Link
+                    href={ROUTES.PUBLIC.PRICING}
+                    onClick={() => setIsOpen(false)}
+                    style={{ width: '100%' }}
+                  >
+                    <Button
+                      w="full"
+                      justifyContent="flex-start"
+                      variant="ghost"
+                      color="gray.700"
+                      bg="transparent"
+                      _hover={{ 
+                        bg: THEME.COLORS.background,
+                        color: THEME.COLORS.primary,
+                        transform: 'translateX(4px)',
+                      }}
+                      fontWeight="medium"
+                      size="lg"
+                      borderRadius="lg"
+                      transition="all 0.2s"
+                    >
+                      Pricing
+                    </Button>
+                  </Link>
                 </VStack>
               )}
 
               {/* Auth Buttons */}
               <VStack gap={4} align="stretch" pt={navItems.length > 0 ? 2 : 0}>
-                <Text 
-                  fontSize="xs" 
-                  fontWeight="bold" 
-                  color={THEME.COLORS.primary} 
-                  textTransform="uppercase"
-                  letterSpacing="wider"
-                >
-                  Get Started
-                </Text>
+                <Flex align="center" gap={2}>
+                  <Box w={1} h={4} bg={THEME.COLORS.accent} borderRadius="full" />
+                  <Text 
+                    fontSize="xs" 
+                    fontWeight="bold" 
+                    color={THEME.COLORS.accent} 
+                    textTransform="uppercase"
+                    letterSpacing="wider"
+                  >
+                    Get Started
+                  </Text>
+                </Flex>
                 <Link href={ROUTES.PUBLIC.LOGIN} onClick={() => setIsOpen(false)} style={{ width: '100%' }}>
                   <Button
-                    {...THEME.BUTTON_STYLES.secondaryButton}
                     w="full"
-                    variant={pathname === ROUTES.PUBLIC.LOGIN ? 'solid' : 'outline'}
-                    bg={pathname === ROUTES.PUBLIC.LOGIN ? THEME.COLORS.primary : 'transparent'}
-                    color={pathname === ROUTES.PUBLIC.LOGIN ? 'white' : THEME.COLORS.primary}
+                    variant="outline"
+                    borderColor={THEME.COLORS.primary}
+                    borderWidth="2px"
+                    color={THEME.COLORS.primary}
+                    bg="transparent"
                     size="lg"
                     justifyContent="flex-start"
                     borderRadius="lg"
                     h="56px"
                     display="inline-flex"
                     alignItems="center"
-                    gap={2}
+                    gap={3}
+                    _hover={{
+                      bg: THEME.COLORS.primary,
+                      color: 'white',
+                    }}
+                    transition="all 0.2s"
                   >
                     <Icon as={FiLogIn} boxSize={5} />
                     Login
@@ -490,16 +542,24 @@ export default function PublicNav() {
                 </Link>
                 <Link href={ROUTES.PUBLIC.REGISTER} onClick={() => setIsOpen(false)} style={{ width: '100%' }}>
                   <Button
-                    {...THEME.BUTTON_STYLES.primaryButton}
                     w="full"
-                    bg={pathname === ROUTES.PUBLIC.REGISTER ? THEME.COLORS.accent : THEME.COLORS.primary}
+                    bg={THEME.COLORS.accent}
+                    color="white"
                     size="lg"
                     justifyContent="flex-start"
                     borderRadius="lg"
                     h="56px"
                     display="inline-flex"
                     alignItems="center"
-                    gap={2}
+                    gap={3}
+                    boxShadow="0 4px 15px rgba(255, 111, 97, 0.3)"
+                    _hover={{
+                      bg: '#FF5A4D',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 20px rgba(255, 111, 97, 0.4)',
+                    }}
+                    _active={{ transform: 'translateY(0)' }}
+                    transition="all 0.2s"
                   >
                     <Icon as={FiUserPlus} boxSize={5} />
                     Get Started Free
@@ -513,15 +573,26 @@ export default function PublicNav() {
                 p={5} 
                 bg={THEME.COLORS.background}
                 borderRadius="xl"
-                border="1px solid"
-                borderColor="gray.200"
-                boxShadow="sm"
+                border="2px solid"
+                borderColor={THEME.COLORS.primary}
+                position="relative"
+                overflow="hidden"
               >
+                {/* Accent corner */}
+                <Box
+                  position="absolute"
+                  top={0}
+                  right={0}
+                  w={16}
+                  h={16}
+                  bg={THEME.COLORS.accent}
+                  transform="translate(50%, -50%) rotate(45deg)"
+                />
                 <HStack gap={3} mb={3}>
                   <Box
                     p={2}
                     borderRadius="lg"
-                    bg={THEME.COLORS.primary}
+                    bg={THEME.COLORS.accent}
                   >
                     <Icon as={FiInfo} color="white" boxSize={4} />
                   </Box>

@@ -296,23 +296,23 @@ export default function LoginPage() {
               {/* REMEMBER ME + FORGOT PASSWORD */}
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Flex alignItems="center" gap={2}>
-                  <Box
-                    as="input"
+                  <input
                     id="rememberMe"
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRememberMe(e.target.checked)}
-                    w="16px"
-                    h="16px"
-                    borderRadius="sm"
-                    cursor="pointer"
-                    accentColor={THEME.COLORS.primary}
+                    style={{
+                      width: 16,
+                      height: 16,
+                      cursor: 'pointer',
+                      accentColor: THEME.COLORS.primary,
+                    }}
                   />
-                  <Box as="label" htmlFor="rememberMe" cursor="pointer">
+                  <label htmlFor="rememberMe" style={{ cursor: 'pointer' }}>
                     <Text fontSize="sm" color="gray.600">
                       Remember me
                     </Text>
-                  </Box>
+                  </label>
                 </Flex>
                 <ChakraLink
                   as={Link}

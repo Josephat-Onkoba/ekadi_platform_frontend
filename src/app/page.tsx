@@ -1,13 +1,13 @@
 /**
- * Landing Page - Improved Version
+ * Landing Page - Professionally Redesigned
  * 
- * Enhancements:
- * - Extracted reusable components
- * - Modern gradient designs
- * - Better mobile responsiveness
- * - Improved accessibility
- * - Smoother animations
- * - Cleaner code organization
+ * Design Features:
+ * - Proper implementation of Ekadi brand colors (Teal & Coral)
+ * - Modern gradient backgrounds and visual depth
+ * - Professional typography hierarchy
+ * - Engaging animations and hover effects
+ * - Mobile-first responsive design
+ * - Decorative elements for visual interest
  */
 
 'use client';
@@ -22,6 +22,9 @@ import {
   Icon,
   Flex,
   SimpleGrid,
+  HStack,
+  VStack,
+  Badge,
 } from '@chakra-ui/react';
 import { 
   FiCalendar, 
@@ -29,15 +32,13 @@ import {
   FiCheckCircle, 
   FiUsers, 
   FiArrowRight,
-  FiZap,
-  FiShield,
-  FiTrendingUp,
   FiStar,
-  FiClock,
-  FiSmartphone,
   FiEdit3,
   FiSend,
-  FiBarChart
+  FiBarChart,
+  FiSmartphone,
+  FiPlay,
+  FiCheck,
 } from 'react-icons/fi';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -45,7 +46,7 @@ import { ReactNode } from 'react';
 import { IconType } from 'react-icons';
 import { ROUTES, THEME } from '@/src/lib/constants';
 
-// Defer nav/footer loading to reduce landing page initial bundle
+// Defer nav/footer loading
 const PublicNav = dynamic(() => import('@/src/components/layout/PublicNav'), {
   ssr: false,
 });
@@ -64,10 +65,26 @@ interface FeatureCardProps {
   description: string;
 }
 
-interface SectionProps {
-  children: ReactNode;
-  bg?: string;
-  py?: number | { base: number; md: number };
+interface StepCardProps {
+  step: string;
+  icon: IconType;
+  title: string;
+  description: string;
+  isLast?: boolean;
+}
+
+interface TestimonialCardProps {
+  name: string;
+  role: string;
+  company: string;
+  content: string;
+  rating: number;
+}
+
+interface StatCardProps {
+  value: string;
+  label: string;
+  description: string;
 }
 
 // ============================================================================
@@ -75,163 +92,400 @@ interface SectionProps {
 // ============================================================================
 
 /**
- * Feature Card Component
- * Displays a feature with icon, title, and description
+ * Feature Card with consistent accent
  */
 const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
   <Box 
-    textAlign="center"
+    position="relative"
     bg="white"
-    p={{ base: 8, md: 10 }}
-    borderRadius="xl"
-    boxShadow="sm"
+    p={{ base: 6, md: 8 }}
+    borderRadius="2xl"
+    boxShadow="0 4px 20px rgba(0, 0, 0, 0.08)"
     border="1px solid"
     borderColor="gray.100"
+    overflow="hidden"
     _hover={{ 
-      boxShadow: "xl",
-      transform: "translateY(-4px)",
+      transform: "translateY(-8px)",
+      boxShadow: "0 20px 40px rgba(0, 128, 128, 0.15)",
       borderColor: THEME.COLORS.primary,
     }}
-    transition="all 0.3s ease"
+    transition="all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
     role="article"
     h="full"
   >
-    <Flex justify="center" mb={6}>
+    {/* Top accent bar - consistent primary color */}
+    <Box
+      position="absolute"
+      top={0}
+      left={0}
+      right={0}
+      h="4px"
+      bg={THEME.COLORS.primary}
+    />
+    
+    <VStack align="flex-start" gap={4}>
       <Box
-        p={4}
+        p={3}
         borderRadius="xl"
-        bg={THEME.COLORS.background}
-        _groupHover={{ bg: "gray.100" }}
-        transition="background 0.3s"
+        bg={`${THEME.COLORS.primary}10`}
+        color={THEME.COLORS.primary}
       >
-        <Icon as={icon} boxSize={{ base: 10, md: 12 }} color={THEME.COLORS.primary} />
+        <Icon as={icon} boxSize={{ base: 6, md: 7 }} />
       </Box>
-    </Flex>
-    <Heading 
-      as="h3" 
-      fontSize={{ base: "xl", md: "2xl" }}
-      fontWeight="bold" 
-      color="gray.800"
-      mb={4}
-    >
-      {title}
-    </Heading>
-    <Text color="gray.600" fontSize={{ base: "sm", md: "md" }} lineHeight="tall">
-      {description}
-    </Text>
+      <Heading 
+        as="h3" 
+        fontSize={{ base: "lg", md: "xl" }}
+        fontWeight="bold" 
+        color={THEME.COLORS.textPrimary}
+      >
+        {title}
+      </Heading>
+      <Text 
+        color={THEME.COLORS.textSecondary} 
+        fontSize={{ base: "sm", md: "md" }} 
+        lineHeight="tall"
+      >
+        {description}
+      </Text>
+    </VStack>
   </Box>
 );
 
 /**
- * Section Wrapper Component
- * Provides consistent spacing and backgrounds for sections
+ * Timeline Step for How It Works - Horizontal on desktop, vertical on mobile
  */
-const Section = ({ children, bg = "white", py = { base: 12, md: 20 } }: SectionProps) => (
-  <Box as="section" bg={bg} py={py}>
-    {children}
+const TimelineStep = ({ step, icon, title, description, isLast }: StepCardProps) => (
+  <Flex 
+    direction={{ base: 'row', md: 'column' }} 
+    align={{ base: 'flex-start', md: 'center' }}
+    position="relative"
+    flex={1}
+  >
+    {/* Left side - Number and line (mobile) / Top - Number and line (desktop) */}
+    <Flex 
+      direction={{ base: 'column', md: 'row' }} 
+      align="center"
+      position={{ base: 'relative', md: 'relative' }}
+      mr={{ base: 5, md: 0 }}
+      mb={{ base: 0, md: 5 }}
+    >
+      {/* Step Number Circle */}
+      <Flex
+        w={{ base: 12, md: 14 }}
+        h={{ base: 12, md: 14 }}
+        borderRadius="full"
+        bg={THEME.COLORS.primary}
+        color="white"
+        fontSize={{ base: "lg", md: "xl" }}
+        fontWeight="bold"
+        align="center"
+        justify="center"
+        boxShadow="0 4px 15px rgba(0, 128, 128, 0.3)"
+        position="relative"
+        zIndex={2}
+      >
+        {step}
+      </Flex>
+      
+      {/* Connector Line - Vertical on mobile, horizontal on desktop */}
+      {!isLast && (
+        <>
+          {/* Mobile vertical line */}
+          <Box
+            display={{ base: 'block', md: 'none' }}
+            position="absolute"
+            top="48px"
+            left="50%"
+            transform="translateX(-50%)"
+            w="2px"
+            h="calc(100% + 20px)"
+            bg={THEME.COLORS.primary}
+            opacity={0.2}
+          />
+          {/* Desktop horizontal line */}
+          <Box
+            display={{ base: 'none', md: 'block' }}
+            position="absolute"
+            left="100%"
+            top="50%"
+            transform="translateY(-50%)"
+            w="100%"
+            h="2px"
+            bg={THEME.COLORS.primary}
+            opacity={0.2}
+          />
+        </>
+      )}
+    </Flex>
+    
+    {/* Content */}
+    <Box 
+      flex={1} 
+      pb={{ base: 8, md: 0 }}
+      textAlign={{ base: 'left', md: 'center' }}
+    >
+      <Flex 
+        align="center" 
+        gap={2} 
+        mb={2}
+        justify={{ base: 'flex-start', md: 'center' }}
+      >
+        <Icon as={icon} boxSize={5} color={THEME.COLORS.accent} />
+        <Heading 
+          as="h3" 
+          fontSize={{ base: "md", md: "lg" }}
+          fontWeight="bold" 
+          color={THEME.COLORS.textPrimary}
+        >
+          {title}
+        </Heading>
+      </Flex>
+      <Text 
+        color={THEME.COLORS.textSecondary} 
+        fontSize={{ base: "sm", md: "md" }} 
+        lineHeight="tall"
+        maxW={{ base: 'full', md: '200px' }}
+        mx={{ base: 0, md: 'auto' }}
+      >
+        {description}
+      </Text>
+    </Box>
+  </Flex>
+);
+
+/**
+ * Testimonial Card
+ */
+const TestimonialCard = ({ name, role, company, content, rating }: TestimonialCardProps) => (
+  <Box
+    p={{ base: 6, md: 8 }}
+    bg="white"
+    borderRadius="2xl"
+    boxShadow="0 4px 20px rgba(0, 0, 0, 0.06)"
+    border="1px solid"
+    borderColor="gray.100"
+    position="relative"
+    _hover={{
+      boxShadow: "0 12px 40px rgba(0, 128, 128, 0.12)",
+      transform: "translateY(-4px)",
+    }}
+    transition="all 0.3s ease"
+    h="full"
+  >
+    {/* Quote decoration */}
+    <Text
+      position="absolute"
+      top={4}
+      right={6}
+      fontSize="6xl"
+      fontWeight="bold"
+      color={`${THEME.COLORS.primary}15`}
+      lineHeight={1}
+      fontFamily="Georgia, serif"
+    >
+      "
+    </Text>
+    
+    <VStack align="flex-start" gap={4} h="full">
+      {/* Stars */}
+      <HStack gap={1}>
+        {[...Array(rating)].map((_, i) => (
+          <Icon 
+            key={i} 
+            as={FiStar} 
+            color={THEME.COLORS.accent} 
+            boxSize={4} 
+            fill={THEME.COLORS.accent} 
+          />
+        ))}
+      </HStack>
+      
+      {/* Content */}
+      <Text 
+        fontSize={{ base: "sm", md: "md" }}
+        color={THEME.COLORS.textSecondary}
+        lineHeight="tall"
+        flex={1}
+      >
+        {content}
+      </Text>
+      
+      {/* Author */}
+      <Box pt={4} borderTop="1px solid" borderColor="gray.100" w="full">
+        <Text fontSize="sm" fontWeight="bold" color={THEME.COLORS.textPrimary}>
+          {name}
+        </Text>
+        <Text fontSize="xs" color={THEME.COLORS.textSecondary}>
+          {role} at {company}
+        </Text>
+      </Box>
+    </VStack>
   </Box>
 );
 
+/**
+ * Stat Card
+ */
+const StatCard = ({ value, label, description }: StatCardProps) => (
+  <VStack gap={2} textAlign="center">
+    <Text 
+      fontSize={{ base: "3xl", md: "4xl", lg: "5xl" }} 
+      fontWeight="extrabold" 
+      color={THEME.COLORS.primary}
+      lineHeight={1}
+    >
+      {value}
+    </Text>
+    <Text fontSize={{ base: "md", md: "lg" }} fontWeight="semibold" color={THEME.COLORS.textPrimary}>
+      {label}
+    </Text>
+    <Text fontSize="sm" color={THEME.COLORS.textSecondary}>
+      {description}
+    </Text>
+  </VStack>
+);
+
 // ============================================================================
-// FEATURES DATA
+// DATA
 // ============================================================================
 
 const FEATURES = [
   {
     icon: FiCalendar,
     title: "Event Management",
-    description: "Create and manage multiple events with an intuitive dashboard",
+    description: "Create and manage multiple events with an intuitive dashboard. Track everything from one central location.",
   },
   {
     icon: FiMail,
     title: "WhatsApp & SMS",
-    description: "Send invitations instantly via WhatsApp and SMS messaging",
+    description: "Send beautiful invitations instantly via WhatsApp and SMS. Reach your guests where they are.",
   },
   {
     icon: FiCheckCircle,
     title: "RSVP Tracking",
-    description: "Track responses in real-time and manage guest lists effortlessly",
+    description: "Track responses in real-time with detailed analytics. Know exactly who's attending your event.",
   },
   {
     icon: FiUsers,
     title: "Custom Cards",
-    description: "Design beautiful invitation cards for any occasion or event",
+    description: "Design stunning invitation cards for any occasion. Choose from templates or create your own.",
   },
-] as const;
+];
 
 const HOW_IT_WORKS = [
   {
-    step: "01",
+    step: "1",
     icon: FiEdit3,
-    title: "Create Your Event",
-    description: "Set up your event details, date, time, and location in minutes",
+    title: "Create Event",
+    description: "Set up your event details in just a few minutes",
   },
   {
-    step: "02",
+    step: "2",
     icon: FiSmartphone,
-    title: "Design Your Card",
-    description: "Choose from beautiful templates or create a custom invitation card",
+    title: "Design Card",
+    description: "Choose a beautiful template or customize your own",
   },
   {
-    step: "03",
+    step: "3",
     icon: FiSend,
-    title: "Send Invitations",
-    description: "Send invitations via WhatsApp and SMS to all your guests instantly",
+    title: "Send Invites",
+    description: "Deliver via WhatsApp & SMS to all your guests",
   },
   {
-    step: "04",
+    step: "4",
     icon: FiBarChart,
     title: "Track RSVPs",
-    description: "Monitor responses in real-time and manage your guest list effortlessly",
+    description: "Monitor responses and manage your guest list",
   },
-] as const;
+];
 
 const TESTIMONIALS = [
   {
     name: "Sarah Johnson",
     role: "Event Planner",
     company: "Celebrations Co.",
-    content: "Ekadi has transformed how I manage events. The WhatsApp integration is a game-changer, and my clients love the beautiful cards!",
+    content: "Ekadi has transformed how I manage events. The WhatsApp integration is a game-changer, and my clients love the beautiful invitation cards!",
     rating: 5,
   },
   {
     name: "Michael Chen",
     role: "Wedding Coordinator",
     company: "Dream Weddings",
-    content: "The RSVP tracking feature saves me hours every week. I can't imagine planning events without Ekadi now.",
+    content: "The RSVP tracking feature saves me hours every week. I can see who's responded instantly. I can't imagine planning events without Ekadi.",
     rating: 5,
   },
   {
     name: "Emily Rodriguez",
     role: "Corporate Events Manager",
     company: "TechCorp",
-    content: "Professional, efficient, and beautiful. Ekadi makes event management feel effortless. Highly recommended!",
+    content: "Professional, efficient, and beautiful. Ekadi makes event management feel effortless. Our team productivity increased significantly!",
     rating: 5,
   },
-] as const;
+];
+
+const STATS = [
+  { value: "10K+", label: "Events Created", description: "Trusted by organizers worldwide" },
+  { value: "98%", label: "Satisfaction Rate", description: "Loved by our community" },
+  { value: "24/7", label: "Support Available", description: "We're here when you need us" },
+];
+
+const PRICING_FEATURES = [
+  "Unlimited event creation",
+  "WhatsApp & SMS invitations",
+  "Beautiful card templates",
+  "Real-time RSVP tracking",
+  "Guest list management",
+  "Event analytics dashboard",
+];
 
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
-/**
- * Landing Page Component
- * Main entry point for unauthenticated users
- */
 export default function HomePage() {
   return (
     <>
       <PublicNav />
 
-      <Box as="main" minH="calc(100vh - 70px)">
+      <Box as="main" pt="70px">
         {/* ====================================
             HERO SECTION
             ==================================== */}
-        <Section 
+        <Box
+          position="relative"
+          overflow="hidden"
           bg={THEME.COLORS.background}
-          py={{ base: 16, md: 24 }}
+          minH={{ base: 'auto', md: 'calc(100vh - 70px)' }}
+          pt={{ base: 10, md: 14, lg: 16 }}
+          pb={{ base: 10, md: 14, lg: 16 }}
+          display="flex"
+          alignItems="center"
         >
-          <Container maxW="container.xl">
+          {/* Decorative background elements */}
+          <Box
+            position="absolute"
+            top="-20%"
+            right="-10%"
+            w={{ base: "300px", md: "500px", lg: "700px" }}
+            h={{ base: "300px", md: "500px", lg: "700px" }}
+            borderRadius="full"
+            bg={`${THEME.COLORS.primary}08`}
+            filter="blur(80px)"
+            pointerEvents="none"
+          />
+          <Box
+            position="absolute"
+            bottom="-10%"
+            left="-5%"
+            w={{ base: "200px", md: "400px" }}
+            h={{ base: "200px", md: "400px" }}
+            borderRadius="full"
+            bg={`${THEME.COLORS.accent}08`}
+            filter="blur(60px)"
+            pointerEvents="none"
+          />
+          
+          <Container maxW="container.xl" position="relative" zIndex={1}>
             <Stack 
               gap={{ base: 6, md: 8 }} 
               textAlign="center" 
@@ -240,40 +494,39 @@ export default function HomePage() {
             >
               {/* Badge */}
               <Flex justify="center">
-                <Box
+                <Badge
                   px={4}
                   py={2}
                   borderRadius="full"
                   bg="white"
-                  boxShadow="sm"
+                  boxShadow="0 2px 12px rgba(0, 128, 128, 0.15)"
                   border="1px solid"
-                  borderColor="gray.200"
+                  borderColor={`${THEME.COLORS.primary}30`}
+                  fontSize="sm"
+                  fontWeight="semibold"
+                  color={THEME.COLORS.primary}
+                  textTransform="none"
+                  letterSpacing="wide"
+                  display="flex"
+                  alignItems="center"
+                  gap={2}
                 >
-                  <Text 
-                    fontSize="sm" 
-                    fontWeight="semibold" 
-                    color={THEME.COLORS.primary}
-                    letterSpacing="wide"
-                  >
-                    Event Management Made Simple
-                  </Text>
-                </Box>
+                  <Box w={2} h={2} borderRadius="full" bg={THEME.COLORS.accent} />
+                  Event Management Made Simple
+                </Badge>
               </Flex>
 
               {/* Hero Title */}
               <Heading
                 as="h1"
-                fontSize={{ base: "3xl", sm: "4xl", md: "5xl", lg: "6xl" }}
+                fontSize={{ base: "2.1rem", sm: "2.6rem", md: "3rem", lg: "3.8rem" }}
                 fontWeight="extrabold"
-                lineHeight="shorter"
-                color="gray.800"
+                lineHeight={1.1}
+                color={THEME.COLORS.textPrimary}
                 letterSpacing="tight"
               >
                 Create Stunning Event Cards &{' '}
-                <Box 
-                  as="span" 
-                  color={THEME.COLORS.primary}
-                >
+                <Box as="span" color={THEME.COLORS.primary}>
                   Manage RSVPs
                 </Box>{' '}
                 Effortlessly
@@ -282,13 +535,13 @@ export default function HomePage() {
               {/* Hero Description */}
               <Text 
                 fontSize={{ base: "md", md: "lg", lg: "xl" }} 
-                color="gray.600"
+                color={THEME.COLORS.textSecondary}
                 maxW="3xl"
                 mx="auto"
                 lineHeight="tall"
               >
-                Send beautiful digital invitations via WhatsApp & SMS. Track RSVPs and 
-                manage your events all in one centralized platform.
+                Send beautiful digital invitations via WhatsApp & SMS. Track RSVPs in real-time 
+                and manage your events all in one powerful, easy-to-use platform.
               </Text>
 
               {/* Hero CTA Buttons */}
@@ -300,51 +553,102 @@ export default function HomePage() {
               >
                 <Link href={ROUTES.PUBLIC.REGISTER}>
                   <Button
-                    {...THEME.BUTTON_STYLES.primaryButton}
+                    bg={THEME.COLORS.accent}
+                    color="white"
                     size="lg"
-                    px={8} >
+                    px={8}
+                    h={14}
+                    fontSize="md"
+                    fontWeight="semibold"
+                    borderRadius="xl"
+                    boxShadow="0 8px 30px rgba(255, 111, 97, 0.4)"
+                    _hover={{ 
+                      bg: '#FF5A4D', 
+                      transform: 'translateY(-3px)', 
+                      boxShadow: '0 12px 40px rgba(255, 111, 97, 0.5)',
+                    }}
+                    _active={{ transform: 'translateY(0)' }}
+                    transition="all 0.3s"
+                    display="flex"
+                    alignItems="center"
+                    gap={2}
+                  >
                     Get Started Free
+                    <Icon as={FiArrowRight} boxSize={5} />
                   </Button>
                 </Link>
                 <Link href={ROUTES.PUBLIC.LOGIN}>
                   <Button
-                    {...THEME.BUTTON_STYLES.secondaryButton}
                     variant="outline"
+                    borderColor={THEME.COLORS.primary}
+                    color={THEME.COLORS.primary}
+                    bg="white"
                     size="lg"
                     px={8}
+                    h={14}
+                    fontSize="md"
+                    fontWeight="semibold"
+                    borderRadius="xl"
+                    borderWidth="2px"
+                    _hover={{ 
+                      bg: THEME.COLORS.primary, 
+                      color: 'white',
+                      transform: 'translateY(-3px)',
+                      boxShadow: '0 8px 30px rgba(0, 128, 128, 0.3)',
+                    }}
+                    _active={{ transform: 'translateY(0)' }}
+                    transition="all 0.3s"
+                    display="flex"
+                    alignItems="center"
+                    gap={2}
                   >
-                    Login
+                    <Icon as={FiPlay} boxSize={5} />
+                    Watch Demo
                   </Button>
                 </Link>
               </Stack>
 
-              {/* Social Proof */}
-              <Flex 
+              {/* Trust Indicators */}
+              <HStack 
                 justify="center" 
-                align="center" 
-                gap={2}
+                gap={{ base: 4, md: 8 }}
                 pt={4}
-                color="gray.500"
-                fontSize="sm"
+                flexWrap="wrap"
               >
-              </Flex>
+                {[
+                  "No credit card required",
+                  "Free forever plan",
+                  "Setup in minutes"
+                ].map((text) => (
+                  <HStack key={text} gap={2} color={THEME.COLORS.textSecondary}>
+                    <Icon as={FiCheck} color={THEME.COLORS.primary} boxSize={4} />
+                    <Text fontSize="sm" fontWeight="medium">{text}</Text>
+                  </HStack>
+                ))}
+              </HStack>
             </Stack>
           </Container>
-        </Section>
+        </Box>
 
         {/* ====================================
             FEATURES SECTION
             ==================================== */}
-        <Box id="features" as="section" bg="white" py={{ base: 20, md: 28 }} scrollMarginTop="70px">
+        <Box 
+          id="features" 
+          as="section" 
+          bg="white" 
+          py={{ base: 8, md: 12 }} 
+          scrollMarginTop="70px"
+        >
           <Container maxW="container.xl" px={{ base: 4, md: 6 }}>
             {/* Section Header */}
-            <Stack gap={4} mb={{ base: 12, md: 20 }} textAlign="center">
+            <VStack gap={4} mb={{ base: 6, md: 8 }} textAlign="center" maxW="2xl" mx="auto">
               <Text
                 fontSize="sm"
                 fontWeight="bold"
-                color={THEME.COLORS.primary}
+                color={THEME.COLORS.accent}
                 textTransform="uppercase"
-                letterSpacing="wider"
+                letterSpacing="widest"
               >
                 Features
               </Text>
@@ -352,24 +656,28 @@ export default function HomePage() {
                 as="h2" 
                 fontSize={{ base: "2xl", md: "3xl", lg: "4xl" }}
                 fontWeight="bold" 
-                color="gray.800"
+                color={THEME.COLORS.textPrimary}
+                lineHeight="shorter"
               >
-                Everything You Need to Manage Events
+                Everything You Need to{' '}
+                <Box as="span" color={THEME.COLORS.primary}>
+                  Manage Events
+                </Box>
               </Heading>
               <Text 
                 fontSize={{ base: "md", md: "lg" }}
-                color="gray.600"
-                maxW="2xl"
-                mx="auto"
+                color={THEME.COLORS.textSecondary}
+                lineHeight="tall"
               >
-                From creation to execution, we've got you covered with powerful tools
+                From creation to execution, we've got you covered with powerful tools 
+                designed to make your event planning seamless.
               </Text>
-            </Stack>
+            </VStack>
 
             {/* Feature Cards Grid */}
             <SimpleGrid
               columns={{ base: 1, sm: 2, lg: 4 }}
-              gap={{ base: 8, md: 10 }}
+              gap={{ base: 6, md: 8 }}
             >
               {FEATURES.map((feature) => (
                 <FeatureCard
@@ -386,15 +694,29 @@ export default function HomePage() {
         {/* ====================================
             HOW IT WORKS SECTION
             ==================================== */}
-        <Box id="how-it-works" as="section" bg={THEME.COLORS.background} py={{ base: 20, md: 28 }} scrollMarginTop="70px">
-          <Container maxW="container.xl" px={{ base: 4, md: 6 }}>
-            <Stack gap={4} mb={{ base: 12, md: 20 }} textAlign="center">
+        <Box 
+          id="how-it-works" 
+          as="section" 
+          position="relative"
+          py={{ base: 8, md: 12 }} 
+          scrollMarginTop="70px"
+          overflow="hidden"
+        >
+          {/* Background */}
+          <Box
+            position="absolute"
+            inset={0}
+            bg={THEME.COLORS.background}
+          />
+          
+          <Container maxW="container.xl" px={{ base: 4, md: 6 }} position="relative" zIndex={1}>
+            <VStack gap={4} mb={{ base: 6, md: 8 }} textAlign="center" maxW="2xl" mx="auto">
               <Text
                 fontSize="sm"
                 fontWeight="bold"
-                color={THEME.COLORS.primary}
+                color={THEME.COLORS.accent}
                 textTransform="uppercase"
-                letterSpacing="wider"
+                letterSpacing="widest"
               >
                 How It Works
               </Text>
@@ -402,154 +724,99 @@ export default function HomePage() {
                 as="h2" 
                 fontSize={{ base: "2xl", md: "3xl", lg: "4xl" }}
                 fontWeight="bold" 
-                color="gray.800"
+                color={THEME.COLORS.textPrimary}
+                lineHeight="shorter"
               >
-                Get Started in 4 Simple Steps
+                Get Started in{' '}
+                <Box as="span" color={THEME.COLORS.primary}>
+                  4 Simple Steps
+                </Box>
               </Heading>
               <Text 
                 fontSize={{ base: "md", md: "lg" }}
-                color="gray.600"
-                maxW="2xl"
-                mx="auto"
+                color={THEME.COLORS.textSecondary}
+                lineHeight="tall"
               >
-                From event creation to guest management, we've made it simple and intuitive
+                From event creation to guest management, we've made it simple and intuitive.
               </Text>
-            </Stack>
+            </VStack>
 
-            <SimpleGrid
-              columns={{ base: 1, md: 2, lg: 4 }}
-              gap={{ base: 8, md: 6 }}
+            {/* Timeline Container */}
+            <Box
+              bg="white"
+              borderRadius="2xl"
+              p={{ base: 6, md: 10 }}
+              boxShadow="0 4px 20px rgba(0, 0, 0, 0.06)"
+              border="1px solid"
+              borderColor="gray.100"
             >
-              {HOW_IT_WORKS.map((step, index) => (
-                <Box
-                  key={step.step}
-                  position="relative"
-                  textAlign="center"
-                  p={8}
-                  bg="white"
-                  borderRadius="xl"
-                  boxShadow="sm"
-                  border="1px solid"
-                  borderColor="gray.100"
-                  _hover={{
-                    boxShadow: "xl",
-                    transform: "translateY(-4px)",
-                    borderColor: THEME.COLORS.primary,
-                  }}
-                  transition="all 0.3s ease"
-                >
-                  <Flex justify="center" mb={4}>
-                    <Box
-                      position="relative"
-                      p={4}
-                      borderRadius="xl"
-                      bg={THEME.COLORS.background}
-                    >
-                      <Icon as={step.icon} boxSize={8} color={THEME.COLORS.primary} />
-                      <Box
-                        position="absolute"
-                        top={-2}
-                        right={-2}
-                        w={6}
-                        h={6}
-                        borderRadius="full"
-                        bg={THEME.COLORS.accent}
-                        color="white"
-                        fontSize="xs"
-                        fontWeight="bold"
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                      >
-                        {step.step}
-                      </Box>
-                    </Box>
-                  </Flex>
-                  <Heading 
-                    as="h3" 
-                    fontSize={{ base: "lg", md: "xl" }}
-                    fontWeight="bold" 
-                    color="gray.800"
-                    mb={3}
-                  >
-                    {step.title}
-                  </Heading>
-                  <Text color="gray.600" fontSize={{ base: "sm", md: "md" }} lineHeight="tall">
-                    {step.description}
-                  </Text>
-                </Box>
-              ))}
-            </SimpleGrid>
+              <Flex 
+                direction={{ base: 'column', md: 'row' }}
+                gap={{ base: 0, md: 4 }}
+              >
+                {HOW_IT_WORKS.map((step, index) => (
+                  <TimelineStep
+                    key={step.step}
+                    step={step.step}
+                    icon={step.icon}
+                    title={step.title}
+                    description={step.description}
+                    isLast={index === HOW_IT_WORKS.length - 1}
+                  />
+                ))}
+              </Flex>
+            </Box>
           </Container>
         </Box>
 
         {/* ====================================
-            BENEFITS SECTION
+            STATS SECTION
             ==================================== */}
         <Box 
           id="benefits"
           as="section"
           bg="white" 
-          py={{ base: 16, md: 24 }}
+          py={{ base: 8, md: 12 }}
           scrollMarginTop="70px"
         >
           <Container maxW="container.lg">
-            <SimpleGrid 
-              columns={{ base: 1, md: 3 }} 
-              gap={{ base: 8, md: 12 }}
-              textAlign="center"
+            <Box
+              p={{ base: 8, md: 12 }}
+              borderRadius="3xl"
+              bg={THEME.COLORS.background}
+              border="1px solid"
+              borderColor="gray.200"
             >
-              <Stack gap={3}>
-                <Text fontSize="3xl" fontWeight="bold" color={THEME.COLORS.primary}>
-                  10K+
-                </Text>
-                <Text fontSize="lg" fontWeight="semibold" color="gray.700">
-                  Events Created
-                </Text>
-                <Text fontSize="sm" color="gray.600">
-                  Trusted by event organizers worldwide
-                </Text>
-              </Stack>
-              
-              <Stack gap={3}>
-                <Text fontSize="3xl" fontWeight="bold" color={THEME.COLORS.primary}>
-                  98%
-                </Text>
-                <Text fontSize="lg" fontWeight="semibold" color="gray.700">
-                  Customer Satisfaction
-                </Text>
-                <Text fontSize="sm" color="gray.600">
-                  Loved by our community
-                </Text>
-              </Stack>
-              
-              <Stack gap={3}>
-                <Text fontSize="3xl" fontWeight="bold" color={THEME.COLORS.primary}>
-                  24/7
-                </Text>
-                <Text fontSize="lg" fontWeight="semibold" color="gray.700">
-                  Support Available
-                </Text>
-                <Text fontSize="sm" color="gray.600">
-                  We're here when you need us
-                </Text>
-              </Stack>
-            </SimpleGrid>
+              <SimpleGrid 
+                columns={{ base: 1, md: 3 }} 
+                gap={{ base: 10, md: 8 }}
+              >
+                {STATS.map((stat) => (
+                  <StatCard key={stat.label} {...stat} />
+                ))}
+              </SimpleGrid>
+            </Box>
           </Container>
         </Box>
 
         {/* ====================================
             TESTIMONIALS SECTION
             ==================================== */}
-        <Box id="testimonials" as="section" bg={THEME.COLORS.background} py={{ base: 20, md: 28 }} scrollMarginTop="70px">
+        <Box 
+          id="testimonials" 
+          as="section" 
+          bg={THEME.COLORS.background} 
+          py={{ base: 8, md: 12 }} 
+          scrollMarginTop="70px"
+        >
           <Container maxW="container.xl" px={{ base: 4, md: 6 }}>
-            <Stack gap={4} mb={{ base: 12, md: 20 }} textAlign="center">
+            <VStack gap={4} mb={{ base: 6, md: 8 }} textAlign="center" maxW="2xl" mx="auto">
               <Text
                 fontSize="sm"
                 fontWeight="bold"
-                color={THEME.COLORS.primary}
+                color={THEME.COLORS.accent}
                 textTransform="uppercase"
-                letterSpacing="wider"
+                letterSpacing="widest"
               >
                 Testimonials
               </Text>
@@ -557,64 +824,137 @@ export default function HomePage() {
                 as="h2" 
                 fontSize={{ base: "2xl", md: "3xl", lg: "4xl" }}
                 fontWeight="bold" 
-                color="gray.800"
+                color={THEME.COLORS.textPrimary}
+                lineHeight="shorter"
               >
-                Loved by Event Organizers
+                Loved by{' '}
+                <Box as="span" color={THEME.COLORS.primary}>
+                  Event Organizers
+                </Box>
               </Heading>
               <Text 
                 fontSize={{ base: "md", md: "lg" }}
-                color="gray.600"
-                maxW="2xl"
-                mx="auto"
+                color={THEME.COLORS.textSecondary}
+                lineHeight="tall"
               >
-                See what our users are saying about their experience with Ekadi
+                See what our users are saying about their experience with Ekadi.
               </Text>
-            </Stack>
+            </VStack>
 
             <SimpleGrid
               columns={{ base: 1, md: 3 }}
               gap={{ base: 6, md: 8 }}
             >
               {TESTIMONIALS.map((testimonial) => (
-                <Box
-                  key={testimonial.name}
-                  p={8}
-                  bg="white"
-                  borderRadius="xl"
-                  boxShadow="sm"
-                  border="1px solid"
-                  borderColor="gray.100"
-                  _hover={{
-                    boxShadow: "xl",
-                    transform: "translateY(-4px)",
-                    borderColor: THEME.COLORS.primary,
-                  }}
-                  transition="all 0.3s ease"
-                >
-                  <Flex mb={4} gap={1}>
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Icon key={i} as={FiStar} color={THEME.COLORS.accent} boxSize={5} fill={THEME.COLORS.accent} />
-                    ))}
-                  </Flex>
-                  <Text 
-                    fontSize={{ base: "sm", md: "md" }}
-                    color="gray.700"
-                    lineHeight="tall"
-                    mb={6}
-                    fontStyle="italic"
-                  >
-                    "{testimonial.content}"
-                  </Text>
-                  <Box pt={4} borderTop="1px solid" borderColor="gray.100">
-                    <Text fontSize="sm" fontWeight="bold" color="gray.800">
-                      {testimonial.name}
-                    </Text>
-                    <Text fontSize="xs" color="gray.600">
-                      {testimonial.role} at {testimonial.company}
-                    </Text>
-                  </Box>
-                </Box>
+                <TestimonialCard key={testimonial.name} {...testimonial} />
               ))}
+            </SimpleGrid>
+          </Container>
+        </Box>
+
+        {/* ====================================
+            PRICING PREVIEW SECTION
+            ==================================== */}
+        <Box 
+          as="section"
+          bg="white" 
+          py={{ base: 8, md: 12 }}
+        >
+          <Container maxW="container.lg">
+            <SimpleGrid columns={{ base: 1, lg: 2 }} gap={{ base: 10, lg: 16 }} alignItems="center">
+              {/* Left - Content */}
+              <VStack align="flex-start" gap={6}>
+                <Text
+                  fontSize="sm"
+                  fontWeight="bold"
+                  color={THEME.COLORS.accent}
+                  textTransform="uppercase"
+                  letterSpacing="widest"
+                >
+                  Simple Pricing
+                </Text>
+                <Heading 
+                  as="h2" 
+                  fontSize={{ base: "2xl", md: "3xl", lg: "4xl" }}
+                  fontWeight="bold" 
+                  color={THEME.COLORS.textPrimary}
+                  lineHeight="shorter"
+                >
+                  Start Free,{' '}
+                  <Box as="span" color={THEME.COLORS.primary}>
+                    Scale When Ready
+                  </Box>
+                </Heading>
+                <Text 
+                  fontSize={{ base: "md", md: "lg" }}
+                  color={THEME.COLORS.textSecondary}
+                  lineHeight="tall"
+                >
+                  Everything you need to get started is completely free. 
+                  Upgrade anytime as your events grow.
+                </Text>
+                
+                <Link href={ROUTES.PUBLIC.REGISTER}>
+                  <Button
+                    bg={THEME.COLORS.accent}
+                    color="white"
+                    size="lg"
+                    px={8}
+                    h={14}
+                    fontSize="md"
+                    fontWeight="semibold"
+                    borderRadius="xl"
+                    boxShadow="0 8px 30px rgba(255, 111, 97, 0.4)"
+                    _hover={{ 
+                      bg: '#FF5A4D', 
+                      transform: 'translateY(-3px)', 
+                      boxShadow: '0 12px 40px rgba(255, 111, 97, 0.5)',
+                    }}
+                    _active={{ transform: 'translateY(0)' }}
+                    transition="all 0.3s"
+                    display="flex"
+                    alignItems="center"
+                    gap={2}
+                  >
+                    Start Free Today
+                    <Icon as={FiArrowRight} boxSize={5} />
+                  </Button>
+                </Link>
+              </VStack>
+
+              {/* Right - Features list */}
+              <Box
+                p={{ base: 6, md: 8 }}
+                bg={THEME.COLORS.background}
+                borderRadius="2xl"
+                border="1px solid"
+                borderColor="gray.200"
+              >
+                <Text 
+                  fontSize="lg" 
+                  fontWeight="bold" 
+                  color={THEME.COLORS.textPrimary}
+                  mb={6}
+                >
+                  Free plan includes:
+                </Text>
+                <VStack align="flex-start" gap={4}>
+                  {PRICING_FEATURES.map((feature) => (
+                    <HStack key={feature} gap={3}>
+                      <Box
+                        p={1}
+                        borderRadius="full"
+                        bg={`${THEME.COLORS.primary}15`}
+                      >
+                        <Icon as={FiCheck} color={THEME.COLORS.primary} boxSize={4} />
+                      </Box>
+                      <Text color={THEME.COLORS.textSecondary} fontSize="md">
+                        {feature}
+                      </Text>
+                    </HStack>
+                  ))}
+                </VStack>
+              </Box>
             </SimpleGrid>
           </Container>
         </Box>
@@ -622,59 +962,93 @@ export default function HomePage() {
         {/* ====================================
             CTA SECTION
             ==================================== */}
-        <Section 
+        <Box 
+          as="section"
+          position="relative"
+          overflow="hidden"
+          py={{ base: 10, md: 14 }}
           bg={THEME.COLORS.primary}
-          py={{ base: 16, md: 24 }}
         >
-          <Container maxW="container.md">
-            <Stack 
+          {/* Decorative circles */}
+          <Box
+            position="absolute"
+            top="-50%"
+            right="-20%"
+            w="600px"
+            h="600px"
+            borderRadius="full"
+            bg="white"
+            opacity={0.05}
+          />
+          <Box
+            position="absolute"
+            bottom="-30%"
+            left="-10%"
+            w="400px"
+            h="400px"
+            borderRadius="full"
+            bg="white"
+            opacity={0.05}
+          />
+          
+          <Container maxW="container.md" position="relative" zIndex={1}>
+            <VStack 
               gap={{ base: 6, md: 8 }} 
-              textAlign="center" 
-              color="white"
+              textAlign="center"
             >
-              {/* CTA Heading */}
               <Heading 
                 fontSize={{ base: "2xl", md: "3xl", lg: "4xl" }}
                 fontWeight="bold"
                 lineHeight="shorter"
+                color="white"
               >
-                Ready to Get Started?
+                Ready to Transform Your Events?
               </Heading>
 
-              {/* CTA Description */}
-              <Text fontSize={{ base: "md", md: "lg" }} maxW="2xl" mx="auto">
+              <Text 
+                fontSize={{ base: "md", md: "lg" }} 
+                maxW="xl" 
+                mx="auto"
+                lineHeight="tall"
+                color="white"
+              >
                 Join thousands of event organizers using Ekadi to create memorable 
                 experiences and manage events effortlessly.
               </Text>
 
-              {/* CTA Button */}
-              <Flex justify="center" pt={2}>
-                <Link href={ROUTES.PUBLIC.REGISTER}>
-                  <Button
-                    {...THEME.BUTTON_STYLES.primaryButton}
-                    size="lg"
-                    px={{ base: 6, md: 10 }}
-                    fontSize={{ base: "md", md: "lg" }}
-                    bg="white"
-                    color={THEME.COLORS.primary}
-                    _hover={{ 
-                      bg: 'gray.100',
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
-                    }}
-                    borderRadius="lg" >
-                    Create Free Account
-                  </Button>
-                </Link>
-              </Flex>
+              <Link href={ROUTES.PUBLIC.REGISTER}>
+                <Button
+                  bg="white"
+                  color={THEME.COLORS.primary}
+                  size="lg"
+                  px={10}
+                  h={14}
+                  fontSize="md"
+                  fontWeight="bold"
+                  borderRadius="xl"
+                  boxShadow="0 8px 30px rgba(0, 0, 0, 0.2)"
+                  _hover={{ 
+                    bg: 'gray.100',
+                    transform: 'translateY(-3px)',
+                    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.3)',
+                  }}
+                  _active={{ transform: 'translateY(0)' }}
+                  transition="all 0.3s"
+                  display="flex"
+                  alignItems="center"
+                  gap={2}
+                >
+                  Create Free Account
+                  <Icon as={FiArrowRight} boxSize={5} />
+                </Button>
+              </Link>
 
-              {/* Trust Badge */}
-              <Text fontSize="sm" opacity={0.9}>
+              <Text fontSize="sm" color="whiteAlpha.800">
                 No credit card required • Start in minutes
               </Text>
-            </Stack>
+            </VStack>
           </Container>
-        </Section>
+        </Box>
       </Box>
 
       <Footer />

@@ -348,3 +348,163 @@ export interface AsyncFunctionState<T = any> {
   data: T | null;
 }
 
+// ============================================================================
+// 7. EVENT TYPES
+// ============================================================================
+
+/**
+ * Event type discriminator
+ * Defines the category of event (wedding, conference, etc.)
+ */
+export type EventType = 'wedding' | 'send_off' | 'conference' | 'birthday' | 'corporate' | 'other';
+
+/**
+ * Event status discriminator
+ * Defines the current state of the event lifecycle
+ */
+export type EventStatus = 'draft' | 'active' | 'closed';
+
+/**
+ * Event interface
+ * Represents a complete event with all fields from the API
+ */
+export interface Event {
+  /** Unique event identifier */
+  id: number;
+  /** Name of the event */
+  event_name: string;
+  /** Type of event */
+  event_type: EventType;
+  /** Human-readable event type label */
+  event_type_display: string;
+  /** Location/address of the event */
+  event_location: string;
+  /** Event date in ISO format (YYYY-MM-DD) */
+  event_date: string;
+  /** Event time in HH:MM:SS format */
+  event_time: string;
+  /** Optional event description */
+  event_description?: string;
+  /** Current status of the event */
+  status: EventStatus;
+  /** Human-readable status label */
+  status_display: string;
+  /** ID of the user who created the event */
+  created_by: number;
+  /** Full name of the event creator */
+  created_by_name: string;
+  /** Total number of invitations sent */
+  total_invitations: number;
+  /** Total number of RSVPs received */
+  total_rsvps: number;
+  /** Total number of confirmed attendees */
+  total_confirmations: number;
+  /** Whether the event is scheduled for the future */
+  is_upcoming: boolean;
+  /** Whether the event has already occurred */
+  is_past: boolean;
+  /** Whether the event can be edited (false if closed) */
+  can_edit: boolean;
+  /** Timestamp when the event was created */
+  created_at: string;
+  /** Timestamp when the event was last updated */
+  updated_at: string;
+}
+
+/**
+ * Event list item interface
+ * Lightweight event representation for list views
+ * Excludes heavy fields like description and statistics
+ */
+export interface EventListItem {
+  /** Unique event identifier */
+  id: number;
+  /** Name of the event */
+  event_name: string;
+  /** Type of event */
+  event_type: EventType;
+  /** Human-readable event type label */
+  event_type_display: string;
+  /** Location/address of the event (truncated) */
+  event_location: string;
+  /** Event date in ISO format (YYYY-MM-DD) */
+  event_date: string;
+  /** Event time in HH:MM:SS format */
+  event_time: string;
+  /** Current status of the event */
+  status: EventStatus;
+  /** Human-readable status label */
+  status_display: string;
+  /** Full name of the event creator */
+  created_by_name: string;
+  /** Whether the event is scheduled for the future */
+  is_upcoming: boolean;
+  /** Whether the event has already occurred */
+  is_past: boolean;
+  /** Timestamp when the event was created */
+  created_at: string;
+}
+
+/**
+ * Event detail interface
+ * Extended event interface with additional computed fields
+ * Used for detailed event views
+ * Note: created_by is a full User object instead of just the ID
+ */
+export interface EventDetail extends Omit<Event, 'created_by'> {
+  /** Combined date and time in ISO 8601 format (timezone-aware) */
+  event_datetime: string;
+  /** Number of confirmed attendees (alias for total_confirmations) */
+  attendee_count: number;
+  /** RSVP response rate as a percentage (0-100) */
+  response_rate: number;
+  /** Full user object of the event creator */
+  created_by: User;
+}
+
+/**
+ * Event form data interface
+ * Used for creating and updating events
+ * Contains only editable fields
+ */
+export interface EventFormData {
+  /** Type of event */
+  event_type: EventType;
+  /** Name of the event */
+  event_name: string;
+  /** Location/address of the event */
+  event_location: string;
+  /** Event date in ISO format (YYYY-MM-DD) */
+  event_date: string;
+  /** Event time in HH:MM:SS format */
+  event_time: string;
+  /** Optional event description */
+  event_description?: string;
+  /** Current status of the event */
+  status: EventStatus;
+}
+
+/**
+ * Event statistics interface
+ * Aggregate statistics for a user's events
+ * Returned by the stats endpoint
+ */
+export interface EventStats {
+  /** Total number of non-deleted events */
+  total_events: number;
+  /** Number of events with active status */
+  active_events: number;
+  /** Number of events with draft status */
+  draft_events: number;
+  /** Number of events with closed status */
+  closed_events: number;
+  /** Number of events scheduled in the future */
+  upcoming_events: number;
+  /** Number of events that have already occurred */
+  past_events: number;
+  /** Sum of all invitations sent across all events */
+  total_invitations_sent: number;
+  /** Sum of all confirmations across all events */
+  total_confirmations: number;
+}
+
